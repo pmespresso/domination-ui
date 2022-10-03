@@ -26,7 +26,7 @@ const Home: NextPage = () => {
       </Head>
       <WagmiConfig client={client}>
         <main className="container bg-gradient-to-r from-cyan-500 to-blue-500 mx-auto bg-cover bg-center h-px w-px">
-          {chain.arbitrum.id}
+          <p className="text-sky-400">{chain.arbitrum.name}</p>
         </main>
       </WagmiConfig>
     </>
