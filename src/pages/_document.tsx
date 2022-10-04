@@ -20,7 +20,7 @@ export default function Document(props: any) {
           href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Lexend:wght@400;500&display=swap"
         />
       </Head>
-      <body className="flex h-full flex-col container bg-gradient-to-r from-cyan-500 to-blue-500 mx-auto bg-cover bg-center">
+      <body className="flex flex-col justify-center align-middle h-full bg-gradient-to-br from-slate-300 via-slate-400 to-slate-800 mx-auto bg-cover bg-center">
         <Main />
         <NextScript />
       </body>

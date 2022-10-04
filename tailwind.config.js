@@ -10,6 +10,9 @@ module.exports = {
         backgroundImage: "url('/images/background.jpeg')",
       },
     },
+    fontFamily: {
+      serif: ["rockwell", "papyrus", "sans-serif"],
+    },
   },
   plugins: [],
 };
