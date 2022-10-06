@@ -20,9 +20,11 @@ export default function Document(props: any) {
           href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Lexend:wght@400;500&display=swap"
         />
       </Head>
-      <body className="flex flex-col justify-center align-middle h-full bg-gradient-to-br from-slate-300 via-slate-400 to-slate-800 mx-auto bg-cover bg-center">
-        <Main />
-        <NextScript />
+      <body className="flex flex-col justify-center align-middle h-full mx-auto">
+        <div className="bg-cover bg-center bg-[url('https://images.pexels.com/photos/325185/pexels-photo-325185.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=2')] h-screen w-screen absolute">
+          <Main />
+          <NextScript />
+        </div>
       </body>
     </Html>
   );

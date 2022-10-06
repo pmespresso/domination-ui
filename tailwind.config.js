@@ -7,7 +7,7 @@ module.exports = {
   theme: {
     extend: {
       backgroundImage: {
-        backgroundImage: "url('/images/background.jpeg')",
+        city: "url('/images/bg-city.jpg')",
       },
     },
     fontFamily: {
