@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 // https://jonmeyers.io/blog/fix-client-server-hydration-error-in-next-js
 const Header = dynamic(() => import("@/components/Header"), { ssr: false });
 import Board from "@/components/Board";
+const Connect = dynamic(() => import("@/components/Connect"), { ssr: false });
 
 const Index: NextPage = () => {
   return (
@@ -17,8 +18,9 @@ const Index: NextPage = () => {
         />
       </Head>
       <Header />
-      <section className="container pt-12 h-96 w-screen  mx-auto my-0 ">
-        <Board />
+      <section className="container pt-12 h-screen w-screen mx-auto my-0 flex items-center justify-center">
+        <Connect />
+        {/* <Board /> */}
       </section>
     </div>
   );

@@ -14,6 +14,7 @@ import {
 import DomStrategyGame from "../abis/DomStrategyGame.json";
 import { formatUnits, parseUnits, Result } from "ethers/lib/utils";
 import { BigNumber, BigNumberish } from "ethers";
+import { GameMumbaiAddress } from "@/constants";
 
 function MobileNavLink({ href, children }: any) {
   return (
@@ -57,7 +58,7 @@ export default function Header() {
     connector: new InjectedConnector(),
   });
   const { data } = useContractRead({
-    addressOrName: "0x5fbdb2315678afecb367f032d93f642f64180aa3",
+    addressOrName: GameMumbaiAddress,
     contractInterface: DomStrategyGame.abi,
     functionName: "currentTurn",
   });

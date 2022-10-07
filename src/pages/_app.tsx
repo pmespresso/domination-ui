@@ -5,7 +5,7 @@ import { publicProvider } from "wagmi/providers/public";
 
 function MyApp({ Component, pageProps }: AppProps) {
   const { chains, provider, webSocketProvider } = configureChains(
-    [chain.localhost],
+    [chain.polygonMumbai, chain.localhost],
     [publicProvider()]
   );
 
