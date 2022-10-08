@@ -1,4 +1,8 @@
-import { BaseCharacterMumbaiAddress, GameMumbaiAddress } from "@/constants";
+import {
+  BaseCharacterIpfsImage,
+  BaseCharacterMumbaiAddress,
+  GameMumbaiAddress,
+} from "@/constants";
 import { Tab } from "@headlessui/react";
 import React, { Fragment, useCallback, useState } from "react";
 import {
@@ -16,6 +20,9 @@ import DomStrategyGame from "../abis/DomStrategyGame.json";
 import BaseCharacter from "../abis/BaseCharacter.json";
 import { PrimaryButton } from "./Button";
 import Loading from "./Loading";
+import Image from "next/image";
+
+const BaseCharacterTypes = ["bfg", "dragon", "knight", "robot", "wizard"];
 
 function MintBaseCharacter({ to }: { to: string }) {
   const { address, isConnected } = useAccount();
@@ -71,8 +78,8 @@ export default function Connect() {
   const { data: ownedBy } = useContractRead({
     addressOrName: BaseCharacterMumbaiAddress,
     contractInterface: BaseCharacter.abi,
-    functionName: "ownedBy",
-    args: [signerAddress],
+    functionName: "tokensOwnedBy",
+    args: [signerAddress, 0],
   });
 
   const { config } = usePrepareContractWrite({
@@ -120,6 +127,7 @@ export default function Connect() {
   );
 
   const handleJoinGame = useCallback(async () => {
+    console.log("here: ", joinGame);
     if (!isLoading && joinGame) {
       await joinGame();
     }
@@ -127,9 +135,12 @@ export default function Connect() {
 
   const handleJoinWithDominationCharacter = useCallback(async () => {
     console.log("Owned By: ", ownedBy);
-    if (ownedBy && ownedBy.length > 0) {
+    console.log("Balnace of : ", baseCharacterBalance);
+    if (ownedBy) {
+      setByoNftAddress(BaseCharacterMumbaiAddress);
+      setTokenId(BigNumber.from(ownedBy).toNumber());
     }
-  }, [ownedBy]);
+  }, [ownedBy, baseCharacterBalance]);
 
   return (
     <div className="flex-col items-center justify-center mw-96">
@@ -192,10 +203,28 @@ export default function Connect() {
           <Tab.Panel>
             {baseCharacterBalance &&
               BigNumber.from(baseCharacterBalance).gt(0) && (
-                <PrimaryButton
-                  onClick={handleJoinWithDominationCharacter}
-                  label="Connect with your Domination Character"
-                />
+                <div className="flex-col">
+                  {byoNftTokenId && (
+                    <div>
+                      <p className="text-lg font-semibold">
+                        We found a Domination Character for you!
+                      </p>
+                      <Image
+                        width={500}
+                        height={500}
+                        alt="base character image"
+                        src={`${BaseCharacterIpfsImage}/${
+                          BaseCharacterTypes[byoNftTokenId % 5]
+                        }.jpg`}
+                      />
+                    </div>
+                  )}
+
+                  <PrimaryButton
+                    onClick={handleJoinWithDominationCharacter}
+                    label="Connect with your Domination Character"
+                  />
+                </div>
               )}
           </Tab.Panel>
           <Tab.Panel>
