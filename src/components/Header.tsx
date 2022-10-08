@@ -1,7 +1,6 @@
 import React from "react";
 import clsx from "clsx";
 import Link from "next/link";
-import { Popover, Transition } from "@headlessui/react";
 import { InjectedConnector } from "@wagmi/core";
 import {
   useAccount,
@@ -11,45 +10,10 @@ import {
   useEnsName,
 } from "wagmi";
 
+import { BaseCharacterMumbaiAddress, GameMumbaiAddress } from "@/constants";
+import { BigNumber } from "ethers";
+
 import DomStrategyGame from "../abis/DomStrategyGame.json";
-import { formatUnits, parseUnits, Result } from "ethers/lib/utils";
-import { BigNumber, BigNumberish } from "ethers";
-import { GameMumbaiAddress } from "@/constants";
-
-function MobileNavLink({ href, children }: any) {
-  return (
-    <Popover.Button as={Link} href={href} className="block w-full p-2">
-      {children}
-    </Popover.Button>
-  );
-}
-
-function MobileNavIcon({ open }: any) {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-3.5 w-3.5 overflow-visible stroke-slate-700"
-      fill="none"
-      strokeWidth={2}
-      strokeLinecap="round"
-    >
-      <path
-        d="M0 1H14M0 7H14M0 13H14"
-        className={clsx(
-          "origin-center transition",
-          open && "scale-90 opacity-0"
-        )}
-      />
-      <path
-        d="M2 2L12 12M12 2L2 12"
-        className={clsx(
-          "origin-center transition",
-          !open && "scale-90 opacity-0"
-        )}
-      />
-    </svg>
-  );
-}
 
 export default function Header() {
   const { address, isConnected } = useAccount();
@@ -57,10 +21,16 @@ export default function Header() {
   const { connect } = useConnect({
     connector: new InjectedConnector(),
   });
-  const { data } = useContractRead({
+  const { data: currentTurn } = useContractRead({
     addressOrName: GameMumbaiAddress,
     contractInterface: DomStrategyGame.abi,
     functionName: "currentTurn",
+  });
+  const { data: spoils } = useContractRead({
+    addressOrName: GameMumbaiAddress,
+    contractInterface: DomStrategyGame.abi,
+    functionName: "spoils",
+    args: [address],
   });
 
   return (
@@ -70,12 +40,17 @@ export default function Header() {
           <p className="font-sans font-bold text-white text-2xl">Domination</p>
         </Link>
 
+        {BigNumber.from(spoils).gt(0) && (
+          <p className="text-stone-200 font-semibold">
+            Your Spoils: {spoils && BigNumber.from(spoils).toString()}
+          </p>
+        )}
         {isConnected ? (
           <div className="flex items-start">
             <p className="text-white mr-4">
-              {data && BigNumber.from(data).eq(0)
+              {currentTurn && BigNumber.from(currentTurn).eq(0)
                 ? "Game Starting Soon!"
-                : "Current Turn: " + data}
+                : "Current Turn: " + currentTurn}
             </p>
             <p className="text-white font-bold">
               Connected to{" "}

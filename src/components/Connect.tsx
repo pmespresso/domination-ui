@@ -1,5 +1,6 @@
 import { BaseCharacterMumbaiAddress, GameMumbaiAddress } from "@/constants";
-import React, { useCallback, useState } from "react";
+import { Tab } from "@headlessui/react";
+import React, { Fragment, useCallback, useState } from "react";
 import {
   erc721ABI,
   useAccount,
@@ -9,35 +10,45 @@ import {
   useSigner,
 } from "wagmi";
 import { BigNumber, Contract } from "ethers";
+import { parseEther } from "ethers/lib/utils";
+
 import DomStrategyGame from "../abis/DomStrategyGame.json";
 import BaseCharacter from "../abis/BaseCharacter.json";
+import { PrimaryButton } from "./Button";
 import Loading from "./Loading";
 
-function MintBaseCharacter({ to, tokenId }: { to: string; tokenId: number }) {
+function MintBaseCharacter({ to }: { to: string }) {
+  const { address, isConnected } = useAccount();
+
   const { config } = usePrepareContractWrite({
     addressOrName: BaseCharacterMumbaiAddress,
     contractInterface: BaseCharacter.abi,
     functionName: "mint",
-    args: [to, tokenId],
+    args: [to],
   });
-  const { data, isLoading, isSuccess, write } = useContractWrite(config);
+  const { write: mint, isLoading, isSuccess } = useContractWrite(config);
 
-  const handleMint = useCallback(async () => {
-    if (!isLoading && write) {
-      await write();
+  const { data: baseCharacterBalance } = useContractRead({
+    addressOrName: BaseCharacterMumbaiAddress,
+    contractInterface: BaseCharacter.abi,
+    functionName: "balanceOf",
+    args: [address],
+  });
+
+  const handleMint = () => {
+    if (mint) {
+      mint();
     }
-  }, [isLoading, write]);
+  };
 
   return (
     <div>
       {isLoading ? (
         <Loading />
       ) : isSuccess ? (
-        <div>Success</div>
+        <p>Success</p>
       ) : (
-        <p className="text-stone-800 font-bold" onClick={handleMint}>
-          (or mint one of ours 😉)
-        </p>
+        <PrimaryButton label="Mint" onClick={handleMint} />
       )}
     </div>
   );
@@ -49,19 +60,31 @@ export default function Connect() {
   const [byoNft, setByoNftAddress] = useState("");
   const [byoNftTokenId, setTokenId] = useState<number>();
   const [error, setError] = useState<string | null>(null);
+  const [desiredStartingSpoils, setDesiredStartingSpoils] = useState<number>(0);
+
+  const { data: baseCharacterBalance } = useContractRead({
+    addressOrName: BaseCharacterMumbaiAddress,
+    contractInterface: BaseCharacter.abi,
+    functionName: "balanceOf",
+    args: [signerAddress],
+  });
+  const { data: ownedBy } = useContractRead({
+    addressOrName: BaseCharacterMumbaiAddress,
+    contractInterface: BaseCharacter.abi,
+    functionName: "ownedBy",
+    args: [signerAddress],
+  });
 
   const { config } = usePrepareContractWrite({
     addressOrName: GameMumbaiAddress,
     contractInterface: DomStrategyGame.abi,
     functionName: "connect",
-    args: [signerAddress, byoNft],
+    args: [byoNft, byoNftTokenId],
+    overrides: {
+      value: parseEther(String(desiredStartingSpoils)),
+    },
   });
-  const {
-    data,
-    isLoading,
-    isSuccess,
-    write: connect,
-  } = useContractWrite(config);
+  const { write: joinGame, isLoading, isSuccess } = useContractWrite(config);
 
   const validateBalance = useCallback(async () => {
     if (signer) {
@@ -97,42 +120,89 @@ export default function Connect() {
   );
 
   const handleJoinGame = useCallback(async () => {
-    if (connect && !isLoading) {
-      await connect();
+    if (!isLoading && joinGame) {
+      await joinGame();
     }
-  }, [connect, isLoading]);
+  }, [joinGame, isLoading]);
+
+  const handleJoinWithDominationCharacter = useCallback(async () => {
+    console.log("Owned By: ", ownedBy);
+    if (ownedBy && ownedBy.length > 0) {
+    }
+  }, [ownedBy]);
 
   return (
-    <div className="flex-col items-center justify-center w-96">
-      <div className="flex">
-        <p className="text-stone-800 font-semibold">Connect with your NFT </p>
-        {signerAddress && <MintBaseCharacter to={signerAddress} tokenId={2} />}
-      </div>
-      <input
-        className="w-full p-4 my-4"
-        type="text"
-        placeholder="e.g. 0xff92920109...."
-        onChange={handleInputBYONFT}
-      />
-      <input
-        className="w-full p-4 my-4"
-        type="number"
-        placeholder="e.g. 9669"
-        onChange={({ target: { value } }) => setTokenId(Number(value))}
-      />
-      {isLoading ? (
-        <Loading />
-      ) : isSuccess ? (
-        <div>Success</div>
-      ) : (
-        <button
-          className="mx-auto w-full h-12 rounded-full text-white bg-gradient-to-r from-purple-500 to-pink-500"
-          disabled={!!error}
-          onClick={handleJoinGame}
-        >
-          Connect
-        </button>
-      )}
+    <div className="flex-col items-center justify-center mw-96">
+      <Tab.Group>
+        <Tab.List className="flex bg-white rounded-md text-stone-800 mb-6 border-slate-800">
+          <Tab as={Fragment}>
+            {({ selected }) => (
+              <p
+                className={`${
+                  selected && "text-blue-500 font-semibold"
+                } + px-4 py-8 hover:cursor-pointer`}
+              >
+                Connect with your NFT
+              </p>
+            )}
+          </Tab>
+          <Tab as={Fragment}>
+            {({ selected }) => (
+              <p
+                className={`${
+                  selected && "text-blue-500 font-semibold"
+                } + px-4 py-8 hover:cursor-pointer`}
+              >
+                Connect with your Domination Character
+              </p>
+            )}
+          </Tab>
+          <Tab as={Fragment}>
+            {({ selected }) => (
+              <p
+                className={`${
+                  selected && "text-blue-500 font-semibold"
+                } + px-4 py-8 hover:cursor-pointer`}
+              >
+                Mint Domination Character
+              </p>
+            )}
+          </Tab>
+        </Tab.List>
+        <Tab.Panels className="bg-white rounded-md text-stone-800">
+          <Tab.Panel>
+            <input
+              className="w-full p-4 my-4"
+              type="text"
+              placeholder="Your NFT address e.g. 0xff92920109...."
+              onChange={handleInputBYONFT}
+            />
+            <input
+              className="w-full p-4 my-4"
+              type="number"
+              placeholder="Your NFT Token ID e.g. 9669"
+              onChange={({ target: { value } }) => setTokenId(Number(value))}
+            />
+            <PrimaryButton
+              disabled={!!error}
+              label="Connect"
+              onClick={handleJoinGame}
+            />
+          </Tab.Panel>
+          <Tab.Panel>
+            {baseCharacterBalance &&
+              BigNumber.from(baseCharacterBalance).gt(0) && (
+                <PrimaryButton
+                  onClick={handleJoinWithDominationCharacter}
+                  label="Connect with your Domination Character"
+                />
+              )}
+          </Tab.Panel>
+          <Tab.Panel>
+            {signerAddress && <MintBaseCharacter to={signerAddress} />}
+          </Tab.Panel>
+        </Tab.Panels>
+      </Tab.Group>
     </div>
   );
 }
