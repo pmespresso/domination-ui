@@ -6,31 +6,35 @@ import React, { useEffect, useState } from "react";
 // https://jonmeyers.io/blog/fix-client-server-hydration-error-in-next-js
 const Header = dynamic(() => import("@/components/Header"), { ssr: false });
 import Board from "@/components/Board";
-import { GameMumbaiAddress } from "@/constants";
+import { contracts } from "@/constants";
 const Connect = dynamic(() => import("@/components/Connect"), { ssr: false });
 import { BigNumber } from "ethers";
-import { useAccount, useContractRead, useConnect } from "wagmi";
-
-import DomStrategyGame from "../abis/DomStrategyGame.json";
+import { useAccount, useContractRead } from "wagmi";
 
 const Index: NextPage = () => {
   const { address } = useAccount();
   const { data: currentTurn } = useContractRead({
-    addressOrName: GameMumbaiAddress,
-    contractInterface: DomStrategyGame.abi,
+    addressOrName: contracts.mumbai.gameAddress,
+    contractInterface: contracts.mumbai.abis.game,
     functionName: "currentTurn",
     watch: true,
   });
   const { data: spoils } = useContractRead({
-    addressOrName: GameMumbaiAddress,
-    contractInterface: DomStrategyGame.abi,
+    addressOrName: contracts.mumbai.gameAddress,
+    contractInterface: contracts.mumbai.abis.game,
     functionName: "spoils",
     args: [address],
     watch: true,
   });
+  const { data: gameStartRemainingTime } = useContractRead({
+    addressOrName: contracts.mumbai.keeperAddress,
+    contractInterface: contracts.mumbai.abis.keeper,
+    functionName: "gameStartRemainingTime",
+  });
+
   const [hasJoinedGame, setHasJoinedGame] = useState(false);
   const [hasGameStarted, setHasGameStarted] = useState(false);
-  const timeTillStart = 10;
+  const [timeTillStart, setTimeTillStart] = useState("");
 
   useEffect(() => {
     if (currentTurn && BigNumber.from(currentTurn).gt(0)) {
@@ -40,7 +44,16 @@ const Index: NextPage = () => {
     if (spoils && BigNumber.from(spoils).gt(0)) {
       setHasJoinedGame(true);
     }
-  }, [currentTurn, spoils]);
+
+    if (
+      gameStartRemainingTime &&
+      BigNumber.from(gameStartRemainingTime).gt(0)
+    ) {
+      setTimeTillStart(
+        BigNumber.from(gameStartRemainingTime).div(60).toString()
+      );
+    }
+  }, [gameStartRemainingTime, spoils, currentTurn]);
 
   return (
     <div>
@@ -53,6 +66,9 @@ const Index: NextPage = () => {
       </Head>
       <Header
         currentTurn={currentTurn && BigNumber.from(currentTurn)}
+        gameStartRemainingTime={
+          gameStartRemainingTime && BigNumber.from(gameStartRemainingTime)
+        }
         spoils={spoils && BigNumber.from(spoils)}
       />
       <section className="container pt-12 h-screen w-screen mx-auto my-0 flex items-center justify-center">

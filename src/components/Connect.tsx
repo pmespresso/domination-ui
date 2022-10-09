@@ -1,8 +1,4 @@
-import {
-  BaseCharacterIpfsImage,
-  BaseCharacterMumbaiAddress,
-  GameMumbaiAddress,
-} from "@/constants";
+import { contracts } from "@/constants";
 import { Tab } from "@headlessui/react";
 import React, { Fragment, useCallback, useEffect, useState } from "react";
 import {
@@ -28,7 +24,7 @@ function MintBaseCharacter({ to }: { to: string }) {
   const { address, isConnected } = useAccount();
 
   const { config } = usePrepareContractWrite({
-    addressOrName: BaseCharacterMumbaiAddress,
+    addressOrName: contracts.mumbai.gameAddress,
     contractInterface: BaseCharacter.abi,
     functionName: "mint",
     args: [to],
@@ -77,7 +73,7 @@ function ConnectButton({
   label,
 }: ConnectButtonProps) {
   const { config } = usePrepareContractWrite({
-    addressOrName: GameMumbaiAddress,
+    addressOrName: contracts.mumbai.gameAddress,
     contractInterface: DomStrategyGame.abi,
     functionName: "connect",
     args: [byoNftTokenId, byoNft],
@@ -109,13 +105,13 @@ export default function Connect() {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const { data: baseCharacterBalance } = useContractRead({
-    addressOrName: BaseCharacterMumbaiAddress,
+    addressOrName: contracts.mumbai.gameAddress,
     contractInterface: BaseCharacter.abi,
     functionName: "balanceOf",
     args: [signerAddress],
   });
   const { data: ownedBy } = useContractRead({
-    addressOrName: BaseCharacterMumbaiAddress,
+    addressOrName: contracts.mumbai.gameAddress,
     contractInterface: BaseCharacter.abi,
     functionName: "tokensOwnedBy",
     args: [signerAddress, 0],
@@ -126,7 +122,7 @@ export default function Connect() {
       console.log("Owned By: ", ownedBy);
       console.log("Balnace of : ", baseCharacterBalance);
       if (ownedBy) {
-        setByoNftAddress(BaseCharacterMumbaiAddress);
+        setByoNftAddress(contracts.mumbai.gameAddress);
         setTokenId(BigNumber.from(ownedBy).toNumber());
       }
     }
@@ -239,7 +235,7 @@ export default function Connect() {
                         width={300}
                         height={300}
                         alt="base character image"
-                        src={`${BaseCharacterIpfsImage}/${
+                        src={`${contracts.mumbai.baseCharacterIpfsUrl}/${
                           BaseCharacterTypes[byoNftTokenId % 5]
                         }.jpg`}
                         className="justify-center mx-auto"

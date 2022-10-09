@@ -1,26 +1,25 @@
 import React from "react";
-import clsx from "clsx";
 import Link from "next/link";
 import { InjectedConnector } from "@wagmi/core";
-import { useAccount, useConnect, useContractRead } from "wagmi";
-
-import { BaseCharacterMumbaiAddress, GameMumbaiAddress } from "@/constants";
+import { useAccount, useConnect } from "wagmi";
 import { BigNumber } from "ethers";
 
-import DomStrategyGame from "../abis/DomStrategyGame.json";
 import { formatUnits } from "ethers/lib/utils";
 
 interface Props {
   currentTurn?: BigNumber;
+  gameStartRemainingTime?: BigNumber;
   spoils?: BigNumber;
 }
 
 export default function Header(props: Props) {
-  const { spoils, currentTurn } = props;
+  const { gameStartRemainingTime, spoils, currentTurn } = props;
   const { address, isConnected } = useAccount();
   const { connect } = useConnect({
     connector: new InjectedConnector(),
   });
+
+  console.log("gameStartRemainingTime: ", gameStartRemainingTime);
 
   return (
     <header className="py-10 fixed top-0 left-0">
@@ -33,7 +32,9 @@ export default function Header(props: Props) {
           </Link>
           <p className="text-stone-600 font-semibold mt-1 mr-4">
             {currentTurn && currentTurn.eq(0)
-              ? "Game Starting Soon!"
+              ? `Game Starting In: ${BigNumber.from(gameStartRemainingTime)
+                  .div(60)
+                  .toString()} hours!`
               : "Current Turn: " + currentTurn}
           </p>
         </div>
