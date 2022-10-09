@@ -31,10 +31,12 @@ export default function Header(props: Props) {
             </p>
           </Link>
           <p className="text-stone-600 font-semibold mt-1 mr-4">
-            {currentTurn && currentTurn.eq(0)
-              ? `Game Starting In: ${BigNumber.from(gameStartRemainingTime)
+            {gameStartRemainingTime
+              ? `Game Starting In: ${gameStartRemainingTime
                   .div(60)
-                  .toString()} hours!`
+                  .toString()} hours, ${gameStartRemainingTime
+                  .mod(60)
+                  .toString()} minutes!`
               : "Current Turn: " + currentTurn}
           </p>
         </div>
