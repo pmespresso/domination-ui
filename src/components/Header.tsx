@@ -8,44 +8,45 @@ import { BaseCharacterMumbaiAddress, GameMumbaiAddress } from "@/constants";
 import { BigNumber } from "ethers";
 
 import DomStrategyGame from "../abis/DomStrategyGame.json";
+import { formatUnits } from "ethers/lib/utils";
 
-export default function Header() {
+interface Props {
+  currentTurn?: BigNumber;
+  spoils?: BigNumber;
+}
+
+export default function Header(props: Props) {
+  const { spoils, currentTurn } = props;
   const { address, isConnected } = useAccount();
   const { connect } = useConnect({
     connector: new InjectedConnector(),
-  });
-  const { data: currentTurn } = useContractRead({
-    addressOrName: GameMumbaiAddress,
-    contractInterface: DomStrategyGame.abi,
-    functionName: "currentTurn",
-  });
-  const { data: spoils } = useContractRead({
-    addressOrName: GameMumbaiAddress,
-    contractInterface: DomStrategyGame.abi,
-    functionName: "spoils",
-    args: [address],
   });
 
   return (
     <header className="py-10 fixed top-0 left-0">
       <nav className="relative px-10  z-50 flex justify-between w-screen">
-        <Link href="#" aria-label="Home">
-          <p className="font-sans font-bold text-white text-2xl">Domination</p>
-        </Link>
-
-        {BigNumber.from(spoils).gt(0) && (
-          <p className="text-stone-200 font-semibold">
-            Your Spoils: {spoils && BigNumber.from(spoils).toString()}
-          </p>
-        )}
-        {isConnected ? (
-          <div className="flex items-start">
-            <p className="text-white mr-4">
-              {currentTurn && BigNumber.from(currentTurn).eq(0)
-                ? "Game Starting Soon!"
-                : "Current Turn: " + currentTurn}
+        <div className="flex">
+          <Link href="#" aria-label="Home">
+            <p className="font-sans font-bold text-white text-2xl hover:cursor-pointer mr-4">
+              Domination
             </p>
-            <p className="text-white font-bold">
+          </Link>
+          <p className="text-stone-600 font-semibold mt-1 mr-4">
+            {currentTurn && currentTurn.eq(0)
+              ? "Game Starting Soon!"
+              : "Current Turn: " + currentTurn}
+          </p>
+        </div>
+
+        {isConnected ? (
+          <div className="flex items-end">
+            {spoils && (
+              <p className="text-stone-600 font-semibold mr-4">
+                Your Starting Spoils: {formatUnits(spoils, "ether")} Ether
+              </p>
+            )}
+
+            <p className="text-stone-600 font-bold">
               Connected to{" "}
               {address
                 ?.slice(0, 8)
