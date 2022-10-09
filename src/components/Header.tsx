@@ -1,83 +1,52 @@
 import React from "react";
 import clsx from "clsx";
 import Link from "next/link";
-import { Popover, Transition } from "@headlessui/react";
 import { InjectedConnector } from "@wagmi/core";
-import {
-  useAccount,
-  useConnect,
-  useContract,
-  useContractRead,
-  useEnsName,
-} from "wagmi";
+import { useAccount, useConnect, useContractRead } from "wagmi";
+
+import { BaseCharacterMumbaiAddress, GameMumbaiAddress } from "@/constants";
+import { BigNumber } from "ethers";
 
 import DomStrategyGame from "../abis/DomStrategyGame.json";
-import { formatUnits, parseUnits, Result } from "ethers/lib/utils";
-import { BigNumber, BigNumberish } from "ethers";
-import { GameMumbaiAddress } from "@/constants";
+import { formatUnits } from "ethers/lib/utils";
 
-function MobileNavLink({ href, children }: any) {
-  return (
-    <Popover.Button as={Link} href={href} className="block w-full p-2">
-      {children}
-    </Popover.Button>
-  );
+interface Props {
+  currentTurn?: BigNumber;
+  spoils?: BigNumber;
 }
 
-function MobileNavIcon({ open }: any) {
-  return (
-    <svg
-      aria-hidden="true"
-      className="h-3.5 w-3.5 overflow-visible stroke-slate-700"
-      fill="none"
-      strokeWidth={2}
-      strokeLinecap="round"
-    >
-      <path
-        d="M0 1H14M0 7H14M0 13H14"
-        className={clsx(
-          "origin-center transition",
-          open && "scale-90 opacity-0"
-        )}
-      />
-      <path
-        d="M2 2L12 12M12 2L2 12"
-        className={clsx(
-          "origin-center transition",
-          !open && "scale-90 opacity-0"
-        )}
-      />
-    </svg>
-  );
-}
-
-export default function Header() {
+export default function Header(props: Props) {
+  const { spoils, currentTurn } = props;
   const { address, isConnected } = useAccount();
-  // const { data: ensName } = useEnsName({ address });
   const { connect } = useConnect({
     connector: new InjectedConnector(),
-  });
-  const { data } = useContractRead({
-    addressOrName: GameMumbaiAddress,
-    contractInterface: DomStrategyGame.abi,
-    functionName: "currentTurn",
   });
 
   return (
     <header className="py-10 fixed top-0 left-0">
       <nav className="relative px-10  z-50 flex justify-between w-screen">
-        <Link href="#" aria-label="Home">
-          <p className="font-sans font-bold text-white text-2xl">Domination</p>
-        </Link>
+        <div className="flex">
+          <Link href="#" aria-label="Home">
+            <p className="font-sans font-bold text-white text-2xl hover:cursor-pointer mr-4">
+              Domination
+            </p>
+          </Link>
+          <p className="text-stone-600 font-semibold mt-1 mr-4">
+            {currentTurn && currentTurn.eq(0)
+              ? "Game Starting Soon!"
+              : "Current Turn: " + currentTurn}
+          </p>
+        </div>
 
         {isConnected ? (
-          <div className="flex items-start">
-            <p className="text-white mr-4">
-              {data && BigNumber.from(data).eq(0)
-                ? "Game Starting Soon!"
-                : "Current Turn: " + data}
-            </p>
-            <p className="text-white font-bold">
+          <div className="flex items-end">
+            {spoils && (
+              <p className="text-stone-600 font-semibold mr-4">
+                Your Starting Spoils: {formatUnits(spoils, "ether")} Ether
+              </p>
+            )}
+
+            <p className="text-stone-600 font-bold">
               Connected to{" "}
               {address
                 ?.slice(0, 8)
