@@ -2,13 +2,7 @@ import React from "react";
 import clsx from "clsx";
 import Link from "next/link";
 import { InjectedConnector } from "@wagmi/core";
-import {
-  useAccount,
-  useConnect,
-  useContract,
-  useContractRead,
-  useEnsName,
-} from "wagmi";
+import { useAccount, useConnect, useContractRead } from "wagmi";
 
 import { BaseCharacterMumbaiAddress, GameMumbaiAddress } from "@/constants";
 import { BigNumber } from "ethers";
@@ -17,7 +11,6 @@ import DomStrategyGame from "../abis/DomStrategyGame.json";
 
 export default function Header() {
   const { address, isConnected } = useAccount();
-  // const { data: ensName } = useEnsName({ address });
   const { connect } = useConnect({
     connector: new InjectedConnector(),
   });

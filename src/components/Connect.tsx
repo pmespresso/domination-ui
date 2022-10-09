@@ -4,7 +4,7 @@ import {
   GameMumbaiAddress,
 } from "@/constants";
 import { Tab } from "@headlessui/react";
-import React, { Fragment, useCallback, useState } from "react";
+import React, { Fragment, useCallback, useEffect, useState } from "react";
 import {
   erc721ABI,
   useAccount,
@@ -35,12 +35,12 @@ function MintBaseCharacter({ to }: { to: string }) {
   });
   const { write: mint, isLoading, isSuccess } = useContractWrite(config);
 
-  const { data: baseCharacterBalance } = useContractRead({
-    addressOrName: BaseCharacterMumbaiAddress,
-    contractInterface: BaseCharacter.abi,
-    functionName: "balanceOf",
-    args: [address],
-  });
+  // const { data: baseCharacterBalance } = useContractRead({
+  //   addressOrName: BaseCharacterMumbaiAddress,
+  //   contractInterface: BaseCharacter.abi,
+  //   functionName: "balanceOf",
+  //   args: [address],
+  // });
 
   const handleMint = () => {
     if (mint) {
@@ -61,6 +61,44 @@ function MintBaseCharacter({ to }: { to: string }) {
   );
 }
 
+interface ConnectButtonProps {
+  byoNft: string;
+  byoNftTokenId?: number;
+  desiredStartingSpoils: number;
+  error: string | null;
+  label: string;
+}
+
+function ConnectButton({
+  byoNft,
+  byoNftTokenId,
+  desiredStartingSpoils,
+  error,
+  label,
+}: ConnectButtonProps) {
+  const { config } = usePrepareContractWrite({
+    addressOrName: GameMumbaiAddress,
+    contractInterface: DomStrategyGame.abi,
+    functionName: "connect",
+    args: [byoNftTokenId, byoNft],
+    overrides: {
+      value: parseEther(String(desiredStartingSpoils)),
+    },
+  });
+  const { write, isLoading, isSuccess } = useContractWrite(config);
+
+  const handleJoinGame = useCallback(async () => {
+    console.log("here: ", write);
+    if (!isLoading && write) {
+      await write();
+    }
+  }, [write, isLoading]);
+
+  return (
+    <PrimaryButton disabled={!!error} label={label} onClick={handleJoinGame} />
+  );
+}
+
 export default function Connect() {
   const { address: signerAddress } = useAccount();
   const { data: signer } = useSigner();
@@ -68,6 +106,7 @@ export default function Connect() {
   const [byoNftTokenId, setTokenId] = useState<number>();
   const [error, setError] = useState<string | null>(null);
   const [desiredStartingSpoils, setDesiredStartingSpoils] = useState<number>(0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
 
   const { data: baseCharacterBalance } = useContractRead({
     addressOrName: BaseCharacterMumbaiAddress,
@@ -82,16 +121,16 @@ export default function Connect() {
     args: [signerAddress, 0],
   });
 
-  const { config } = usePrepareContractWrite({
-    addressOrName: GameMumbaiAddress,
-    contractInterface: DomStrategyGame.abi,
-    functionName: "connect",
-    args: [byoNft, byoNftTokenId],
-    overrides: {
-      value: parseEther(String(desiredStartingSpoils)),
-    },
-  });
-  const { write: joinGame, isLoading, isSuccess } = useContractWrite(config);
+  useEffect(() => {
+    if (selectedIndex == 1) {
+      console.log("Owned By: ", ownedBy);
+      console.log("Balnace of : ", baseCharacterBalance);
+      if (ownedBy) {
+        setByoNftAddress(BaseCharacterMumbaiAddress);
+        setTokenId(BigNumber.from(ownedBy).toNumber());
+      }
+    }
+  }, [selectedIndex, ownedBy, baseCharacterBalance]);
 
   const validateBalance = useCallback(async () => {
     if (signer) {
@@ -126,25 +165,9 @@ export default function Connect() {
     [byoNft.length, validateBalance, byoNftTokenId]
   );
 
-  const handleJoinGame = useCallback(async () => {
-    console.log("here: ", joinGame);
-    if (!isLoading && joinGame) {
-      await joinGame();
-    }
-  }, [joinGame, isLoading]);
-
-  const handleJoinWithDominationCharacter = useCallback(async () => {
-    console.log("Owned By: ", ownedBy);
-    console.log("Balnace of : ", baseCharacterBalance);
-    if (ownedBy) {
-      setByoNftAddress(BaseCharacterMumbaiAddress);
-      setTokenId(BigNumber.from(ownedBy).toNumber());
-    }
-  }, [ownedBy, baseCharacterBalance]);
-
   return (
     <div className="flex-col items-center justify-center mw-96">
-      <Tab.Group>
+      <Tab.Group selectedIndex={selectedIndex} onChange={setSelectedIndex}>
         <Tab.List className="flex bg-white rounded-md text-stone-800 mb-6 border-slate-800">
           <Tab as={Fragment}>
             {({ selected }) => (
@@ -194,10 +217,12 @@ export default function Connect() {
               placeholder="Your NFT Token ID e.g. 9669"
               onChange={({ target: { value } }) => setTokenId(Number(value))}
             />
-            <PrimaryButton
-              disabled={!!error}
-              label="Connect"
-              onClick={handleJoinGame}
+            <ConnectButton
+              desiredStartingSpoils={desiredStartingSpoils}
+              byoNft={byoNft}
+              byoNftTokenId={byoNftTokenId}
+              error={error}
+              label="Connect with your NFT"
             />
           </Tab.Panel>
           <Tab.Panel>
@@ -205,23 +230,36 @@ export default function Connect() {
               BigNumber.from(baseCharacterBalance).gt(0) && (
                 <div className="flex-col">
                   {byoNftTokenId && (
-                    <div>
-                      <p className="text-lg font-semibold">
-                        We found a Domination Character for you!
+                    <div className="flex-col">
+                      <p className="text-lg font-light text-center">
+                        Connect with your Domination Character NFT
                       </p>
                       <Image
-                        width={500}
-                        height={500}
+                        loading="lazy"
+                        width={300}
+                        height={300}
                         alt="base character image"
                         src={`${BaseCharacterIpfsImage}/${
                           BaseCharacterTypes[byoNftTokenId % 5]
                         }.jpg`}
+                        className="justify-center mx-auto"
+                      />
+                      <input
+                        className="w-full p-4 my-4"
+                        type="number"
+                        placeholder="Desired Starting Spoils in Ether (the more you pay, the more you get if you join an alliance) - e.g. 0.01"
+                        onChange={({ target: { value } }) =>
+                          setDesiredStartingSpoils(Number(value))
+                        }
                       />
                     </div>
                   )}
 
-                  <PrimaryButton
-                    onClick={handleJoinWithDominationCharacter}
+                  <ConnectButton
+                    error={error}
+                    desiredStartingSpoils={desiredStartingSpoils}
+                    byoNft={byoNft}
+                    byoNftTokenId={byoNftTokenId}
                     label="Connect with your Domination Character"
                   />
                 </div>
