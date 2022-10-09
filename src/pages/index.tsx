@@ -38,6 +38,10 @@ const Index: NextPage = () => {
         functionName: "gameStartRemainingTime",
         watch: true,
       },
+      {
+        ...mumbaiGame,
+        functionName: "activePlayersCount",
+      },
     ],
   });
 
@@ -45,26 +49,35 @@ const Index: NextPage = () => {
   const [currentTurn, setCurrentTurn] = useState<BigNumber>();
   const [spoils, setSpoils] = useState<BigNumber>();
   const [timeTillStart, setTimeTillStart] = useState<BigNumber>();
+  const [numberOfActivePlayers, setNumberOfActivePlayers] =
+    useState<BigNumber>();
 
   useEffect(() => {
-    const currentTurn = data && data[0];
-    const spoils = data && data[1];
-    const gameStartRemainingTime = data && data[2];
+    if (data) {
+      const currentTurn = data[0];
+      const spoils = data[1];
+      const gameStartRemainingTime = data[2];
+      const activePlayersCount = data[3];
 
-    if (currentTurn && BigNumber.from(currentTurn).gt(0)) {
-      setCurrentTurn(BigNumber.from(currentTurn));
-    }
+      if (currentTurn && BigNumber.from(currentTurn).gt(0)) {
+        setCurrentTurn(BigNumber.from(currentTurn));
+      }
 
-    if (spoils && BigNumber.from(spoils).gt(0)) {
-      setHasJoinedGame(true);
-      setSpoils(BigNumber.from(spoils));
-    }
+      if (activePlayersCount && BigNumber.from(activePlayersCount).gt(0)) {
+        setNumberOfActivePlayers(BigNumber.from(activePlayersCount));
+      }
 
-    if (
-      gameStartRemainingTime &&
-      BigNumber.from(gameStartRemainingTime).gt(0)
-    ) {
-      setTimeTillStart(BigNumber.from(gameStartRemainingTime));
+      if (spoils && BigNumber.from(spoils).gt(0)) {
+        setHasJoinedGame(true);
+        setSpoils(BigNumber.from(spoils));
+      }
+
+      if (
+        gameStartRemainingTime &&
+        BigNumber.from(gameStartRemainingTime).gt(0)
+      ) {
+        setTimeTillStart(BigNumber.from(gameStartRemainingTime));
+      }
     }
   }, [data]);
 
@@ -80,6 +93,7 @@ const Index: NextPage = () => {
       <Header
         currentTurn={currentTurn}
         gameStartRemainingTime={timeTillStart}
+        numberOfActivePlayers={numberOfActivePlayers}
         spoils={spoils}
       />
       <section className="container pt-12 h-screen w-screen mx-auto my-0 flex items-center justify-center">

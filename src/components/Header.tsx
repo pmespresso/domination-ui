@@ -9,17 +9,19 @@ import { formatUnits } from "ethers/lib/utils";
 interface Props {
   currentTurn?: BigNumber;
   gameStartRemainingTime?: BigNumber;
+  numberOfActivePlayers?: BigNumber;
   spoils?: BigNumber;
 }
 
 export default function Header(props: Props) {
-  const { gameStartRemainingTime, spoils, currentTurn } = props;
+  const { gameStartRemainingTime, numberOfActivePlayers, spoils, currentTurn } =
+    props;
   const { address, isConnected } = useAccount();
   const { connect } = useConnect({
     connector: new InjectedConnector(),
   });
 
-  console.log("gameStartRemainingTime: ", gameStartRemainingTime);
+  console.log("numberOfActivePlayers: ", numberOfActivePlayers);
 
   return (
     <header className="py-10 fixed top-0 left-0">
@@ -39,6 +41,11 @@ export default function Header(props: Props) {
                   .toString()} minutes!`
               : "Current Turn: " + currentTurn}
           </p>
+          {numberOfActivePlayers && (
+            <p className="text-stone-600 font-semibold mt-1 mr-4">
+              {numberOfActivePlayers.toString()} Players Connected
+            </p>
+          )}
         </div>
 
         {isConnected ? (
