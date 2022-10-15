@@ -24,10 +24,13 @@ function MintBaseCharacter() {
   const { address, isConnected } = useAccount();
 
   const { config } = usePrepareContractWrite({
-    addressOrName: contracts.mumbai.gameAddress,
+    addressOrName: contracts.mumbai.baseCharacterNftAddress,
     contractInterface: BaseCharacter.abi,
     functionName: "mint",
     args: [address],
+    overrides: {
+      gasLimit: 1000000,
+    },
   });
   const { write: mint, isLoading, isSuccess } = useContractWrite(config);
 

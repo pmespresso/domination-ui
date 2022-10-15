@@ -112,7 +112,9 @@ const Index: NextPage = () => {
               <p className="text-stone-500 text-center m-auto text-md py-5">
                 Come back at{" "}
                 {gameStartTimestamp &&
-                  new Date(gameStartTimestamp.toString()).toDateString()}{" "}
+                  new Date(
+                    gameStartTimestamp.mul(1000).toNumber()
+                  ).toLocaleTimeString()}{" "}
                 hours to make your first move.
               </p>
               <a
