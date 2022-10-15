@@ -10,7 +10,6 @@ import { contracts } from "@/constants";
 const Connect = dynamic(() => import("@/components/Connect"), { ssr: false });
 import { BigNumber } from "ethers";
 import { useAccount, useContractReads } from "wagmi";
-import Link from "next/link";
 
 const Index: NextPage = () => {
   const { address } = useAccount();
@@ -33,14 +32,16 @@ const Index: NextPage = () => {
         args: [address],
       },
       {
-        addressOrName: contracts.mumbai.keeperAddress,
-        contractInterface: contracts.mumbai.abis.keeper,
-        functionName: "gameStartRemainingTime",
-        watch: true,
+        ...mumbaiGame,
+        functionName: "gameStartTimestamp",
       },
       {
         ...mumbaiGame,
         functionName: "activePlayersCount",
+      },
+      {
+        ...mumbaiGame,
+        functionName: "interval",
       },
     ],
   });
@@ -48,7 +49,7 @@ const Index: NextPage = () => {
   const [hasJoinedGame, setHasJoinedGame] = useState(false);
   const [currentTurn, setCurrentTurn] = useState<BigNumber>();
   const [spoils, setSpoils] = useState<BigNumber>();
-  const [timeTillStart, setTimeTillStart] = useState<BigNumber>();
+  const [gameStartTimestamp, setGameStartTimestamp] = useState<BigNumber>();
   const [numberOfActivePlayers, setNumberOfActivePlayers] =
     useState<BigNumber>();
 
@@ -56,8 +57,14 @@ const Index: NextPage = () => {
     if (data) {
       const currentTurn = data[0];
       const spoils = data[1];
-      const gameStartRemainingTime = data[2];
+      const gameStartTimestamp = data[2];
       const activePlayersCount = data[3];
+
+      console.log("currentTUrn: ", data[0]);
+      console.log("spoils: ", data[1]);
+      console.log("gameStartTimestamp: ", data[2]);
+      console.log("activePlyersCount: ", data[3]);
+      console.log("interval: ", data[4]);
 
       if (currentTurn && BigNumber.from(currentTurn).gt(0)) {
         setCurrentTurn(BigNumber.from(currentTurn));
@@ -72,11 +79,8 @@ const Index: NextPage = () => {
         setSpoils(BigNumber.from(spoils));
       }
 
-      if (
-        gameStartRemainingTime &&
-        BigNumber.from(gameStartRemainingTime).gt(0)
-      ) {
-        setTimeTillStart(BigNumber.from(gameStartRemainingTime));
+      if (gameStartTimestamp && BigNumber.from(gameStartTimestamp).gt(0)) {
+        setGameStartTimestamp(BigNumber.from(gameStartTimestamp));
       }
     }
   }, [data]);
@@ -92,7 +96,7 @@ const Index: NextPage = () => {
       </Head>
       <Header
         currentTurn={currentTurn}
-        gameStartRemainingTime={timeTillStart}
+        gameStartTimestamp={gameStartTimestamp}
         numberOfActivePlayers={numberOfActivePlayers}
         spoils={spoils}
       />
@@ -106,8 +110,10 @@ const Index: NextPage = () => {
                 You&apos;re all set!
               </p>
               <p className="text-stone-500 text-center m-auto text-md py-5">
-                Come back in {timeTillStart?.div(60).toString()} hours to make
-                your first move.
+                Come back at{" "}
+                {gameStartTimestamp &&
+                  new Date(gameStartTimestamp.toString()).toDateString()}{" "}
+                hours to make your first move.
               </p>
               <a
                 href="https://github.com/pmespresso/dom-strategy-game#readme"

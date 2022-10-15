@@ -8,13 +8,13 @@ import { formatUnits } from "ethers/lib/utils";
 
 interface Props {
   currentTurn?: BigNumber;
-  gameStartRemainingTime?: BigNumber;
+  gameStartTimestamp?: BigNumber;
   numberOfActivePlayers?: BigNumber;
   spoils?: BigNumber;
 }
 
 export default function Header(props: Props) {
-  const { gameStartRemainingTime, numberOfActivePlayers, spoils, currentTurn } =
+  const { gameStartTimestamp, numberOfActivePlayers, spoils, currentTurn } =
     props;
   const { address, isConnected } = useAccount();
   const { connect } = useConnect({
@@ -33,12 +33,10 @@ export default function Header(props: Props) {
             </p>
           </Link>
           <p className="text-stone-600 font-semibold mt-1 mr-4">
-            {gameStartRemainingTime
-              ? `Game Starting In: ${gameStartRemainingTime
-                  .div(60)
-                  .toString()} hours, ${gameStartRemainingTime
-                  .mod(60)
-                  .toString()} minutes!`
+            {gameStartTimestamp
+              ? `Game Starting on: ${new Date(
+                  gameStartTimestamp.mul(1000).toNumber()
+                ).toUTCString()}`
               : "Current Turn: " + currentTurn}
           </p>
           {numberOfActivePlayers && (
