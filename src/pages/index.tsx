@@ -2,6 +2,7 @@ import type { NextPage } from "next";
 import Head from "next/head";
 import dynamic from "next/dynamic";
 import React, { useEffect, useState } from "react";
+import moment from "moment";
 
 // https://jonmeyers.io/blog/fix-client-server-hydration-error-in-next-js
 const Header = dynamic(() => import("@/components/Header"), { ssr: false });
@@ -10,6 +11,7 @@ import { contracts } from "@/constants";
 const Connect = dynamic(() => import("@/components/Connect"), { ssr: false });
 import { BigNumber } from "ethers";
 import { useAccount, useContractReads } from "wagmi";
+import { formatGameStartTime } from "@/utils";
 
 const Index: NextPage = () => {
   const { address } = useAccount();
@@ -110,12 +112,9 @@ const Index: NextPage = () => {
                 You&apos;re all set!
               </p>
               <p className="text-stone-500 text-center m-auto text-md py-5">
-                Come back at{" "}
-                {gameStartTimestamp &&
-                  new Date(
-                    gameStartTimestamp.mul(1000).toNumber()
-                  ).toLocaleTimeString()}{" "}
-                hours to make your first move.
+                Come back{" "}
+                {gameStartTimestamp && formatGameStartTime(gameStartTimestamp)}{" "}
+                to make your first move.
               </p>
               <a
                 href="https://github.com/pmespresso/dom-strategy-game#readme"

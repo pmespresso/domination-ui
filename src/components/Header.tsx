@@ -5,6 +5,8 @@ import { useAccount, useConnect } from "wagmi";
 import { BigNumber } from "ethers";
 
 import { formatUnits } from "ethers/lib/utils";
+import { formatGameStartTime } from "@/utils";
+import moment from "moment";
 
 interface Props {
   currentTurn?: BigNumber;
@@ -34,9 +36,7 @@ export default function Header(props: Props) {
           </Link>
           <p className="text-stone-600 font-semibold mt-1 mr-4">
             {gameStartTimestamp
-              ? `Game Starting on: ${new Date(
-                  gameStartTimestamp.mul(1000).toNumber()
-                ).toUTCString()}`
+              ? `Game Starting ${formatGameStartTime(gameStartTimestamp)}`
               : "Current Turn: " + currentTurn}
           </p>
           {numberOfActivePlayers && (
