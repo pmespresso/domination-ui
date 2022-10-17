@@ -6,7 +6,6 @@ import { BigNumber } from "ethers";
 
 import { formatUnits } from "ethers/lib/utils";
 import { formatGameStartTime } from "@/utils";
-import moment from "moment";
 
 interface Props {
   currentTurn?: BigNumber;
@@ -23,22 +22,25 @@ export default function Header(props: Props) {
     connector: new InjectedConnector(),
   });
 
-  console.log("numberOfActivePlayers: ", numberOfActivePlayers);
-
   return (
     <header className="py-10 fixed top-0 left-0">
       <nav className="relative px-10  z-50 flex justify-between w-screen">
         <div className="flex">
           <Link href="#" aria-label="Home">
-            <p className="font-sans font-bold text-white text-2xl hover:cursor-pointer mr-4">
+            <p className="font-sans font-bold bg-gradient-to-r from-yellow-400  via-red-500  to-green-400 inline-block text-transparent bg-clip-text text-2xl hover:cursor-pointer mr-4">
               Domination
             </p>
           </Link>
-          <p className="text-stone-600 font-semibold mt-1 mr-4">
-            {gameStartTimestamp
+          <p className="text-stone-600 font-semibold mt-1 mr-20 ml-16">
+            {gameStartTimestamp && currentTurn?.eq(0)
               ? `Game Starting ${formatGameStartTime(gameStartTimestamp)}`
-              : "Current Turn: " + currentTurn}
+              : "Game Started!"}
           </p>
+
+          <p className="text-stone-600 font-semibold mt-1 mr-20 ml-6">
+            {currentTurn?.gt(0) && `Current Turn: ${currentTurn}`}
+          </p>
+
           {numberOfActivePlayers && (
             <p className="text-stone-600 font-semibold mt-1 mr-4">
               {numberOfActivePlayers.toString()} Players Connected

@@ -1,7 +1,7 @@
 export const contracts = {
   mumbai: {
-    gameAddress: "0x34e42ffa438f60eff68084748a2e686d9259207f",
-    baseCharacterNftAddress: "0x3b83d7cddf9e2323caa76fdac5df82081a5f0d99",
+    gameAddress: "0x54Bbcc474CE31Bb735912956ed5BaC0d858AAC58",
+    baseCharacterNftAddress: "0x6B11648dd6054Da0C5195131D6A7cA5082E0d22D",
     baseCharacterIpfsUrl:
       "https://wortl.mypinata.cloud/ipfs/QmV5mkkBjD7BXGbPo1sg7EpMjxia2oJFF1coHJrvLz8dTg",
     abis: {
