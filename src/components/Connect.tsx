@@ -1,10 +1,7 @@
-import {
-  BaseCharacterIpfsImage,
-  BaseCharacterMumbaiAddress,
-  GameMumbaiAddress,
-} from "@/constants";
+import { contracts } from "@/constants";
 import { Tab } from "@headlessui/react";
 import React, { Fragment, useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import {
   erc721ABI,
   useAccount,
@@ -20,27 +17,22 @@ import DomStrategyGame from "../abis/DomStrategyGame.json";
 import BaseCharacter from "../abis/BaseCharacter.json";
 import { PrimaryButton } from "./Button";
 import Loading from "./Loading";
-import Image from "next/image";
 
 const BaseCharacterTypes = ["bfg", "dragon", "knight", "robot", "wizard"];
 
-function MintBaseCharacter({ to }: { to: string }) {
+function MintBaseCharacter() {
   const { address, isConnected } = useAccount();
 
   const { config } = usePrepareContractWrite({
-    addressOrName: BaseCharacterMumbaiAddress,
+    addressOrName: contracts.mumbai.baseCharacterNftAddress,
     contractInterface: BaseCharacter.abi,
     functionName: "mint",
-    args: [to],
+    args: [address],
+    overrides: {
+      gasLimit: 1000000,
+    },
   });
   const { write: mint, isLoading, isSuccess } = useContractWrite(config);
-
-  // const { data: baseCharacterBalance } = useContractRead({
-  //   addressOrName: BaseCharacterMumbaiAddress,
-  //   contractInterface: BaseCharacter.abi,
-  //   functionName: "balanceOf",
-  //   args: [address],
-  // });
 
   const handleMint = () => {
     if (mint) {
@@ -55,7 +47,11 @@ function MintBaseCharacter({ to }: { to: string }) {
       ) : isSuccess ? (
         <p>Success</p>
       ) : (
-        <PrimaryButton label="Mint" onClick={handleMint} />
+        <PrimaryButton
+          label="Mint"
+          onClick={handleMint}
+          disabled={!isConnected}
+        />
       )}
     </div>
   );
@@ -77,12 +73,13 @@ function ConnectButton({
   label,
 }: ConnectButtonProps) {
   const { config } = usePrepareContractWrite({
-    addressOrName: GameMumbaiAddress,
+    addressOrName: contracts.mumbai.gameAddress,
     contractInterface: DomStrategyGame.abi,
     functionName: "connect",
     args: [byoNftTokenId, byoNft],
     overrides: {
       value: parseEther(String(desiredStartingSpoils)),
+      gasLimit: 1000000,
     },
   });
   const { write, isLoading, isSuccess } = useContractWrite(config);
@@ -109,13 +106,13 @@ export default function Connect() {
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   const { data: baseCharacterBalance } = useContractRead({
-    addressOrName: BaseCharacterMumbaiAddress,
+    addressOrName: contracts.mumbai.baseCharacterNftAddress,
     contractInterface: BaseCharacter.abi,
     functionName: "balanceOf",
     args: [signerAddress],
   });
   const { data: ownedBy } = useContractRead({
-    addressOrName: BaseCharacterMumbaiAddress,
+    addressOrName: contracts.mumbai.baseCharacterNftAddress,
     contractInterface: BaseCharacter.abi,
     functionName: "tokensOwnedBy",
     args: [signerAddress, 0],
@@ -126,7 +123,7 @@ export default function Connect() {
       console.log("Owned By: ", ownedBy);
       console.log("Balnace of : ", baseCharacterBalance);
       if (ownedBy) {
-        setByoNftAddress(BaseCharacterMumbaiAddress);
+        setByoNftAddress(contracts.mumbai.baseCharacterNftAddress);
         setTokenId(BigNumber.from(ownedBy).toNumber());
       }
     }
@@ -239,7 +236,7 @@ export default function Connect() {
                         width={300}
                         height={300}
                         alt="base character image"
-                        src={`${BaseCharacterIpfsImage}/${
+                        src={`${contracts.mumbai.baseCharacterIpfsUrl}/${
                           BaseCharacterTypes[byoNftTokenId % 5]
                         }.jpg`}
                         className="justify-center mx-auto"
@@ -266,7 +263,7 @@ export default function Connect() {
               )}
           </Tab.Panel>
           <Tab.Panel>
-            {signerAddress && <MintBaseCharacter to={signerAddress} />}
+            <MintBaseCharacter />
           </Tab.Panel>
         </Tab.Panels>
       </Tab.Group>

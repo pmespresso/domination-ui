@@ -6,41 +6,85 @@ import React, { useEffect, useState } from "react";
 // https://jonmeyers.io/blog/fix-client-server-hydration-error-in-next-js
 const Header = dynamic(() => import("@/components/Header"), { ssr: false });
 import Board from "@/components/Board";
-import { GameMumbaiAddress } from "@/constants";
+import { contracts } from "@/constants";
 const Connect = dynamic(() => import("@/components/Connect"), { ssr: false });
 import { BigNumber } from "ethers";
-import { useAccount, useContractRead, useConnect } from "wagmi";
-
-import DomStrategyGame from "../abis/DomStrategyGame.json";
+import { useAccount, useContractReads } from "wagmi";
+import { formatGameStartTime } from "@/utils";
 
 const Index: NextPage = () => {
   const { address } = useAccount();
-  const { data: currentTurn } = useContractRead({
-    addressOrName: GameMumbaiAddress,
-    contractInterface: DomStrategyGame.abi,
-    functionName: "currentTurn",
+
+  const mumbaiGame = {
+    addressOrName: contracts.mumbai.gameAddress,
+    contractInterface: contracts.mumbai.abis.game,
     watch: true,
+  };
+
+  const { data } = useContractReads({
+    contracts: [
+      {
+        ...mumbaiGame,
+        functionName: "currentTurn",
+      },
+      {
+        ...mumbaiGame,
+        functionName: "spoils",
+        args: [address],
+      },
+      {
+        ...mumbaiGame,
+        functionName: "gameStartTimestamp",
+      },
+      {
+        ...mumbaiGame,
+        functionName: "activePlayersCount",
+      },
+      {
+        ...mumbaiGame,
+        functionName: "interval",
+      },
+    ],
   });
-  const { data: spoils } = useContractRead({
-    addressOrName: GameMumbaiAddress,
-    contractInterface: DomStrategyGame.abi,
-    functionName: "spoils",
-    args: [address],
-    watch: true,
-  });
+
   const [hasJoinedGame, setHasJoinedGame] = useState(false);
-  const [hasGameStarted, setHasGameStarted] = useState(false);
-  const timeTillStart = 10;
+  const [currentTurn, setCurrentTurn] = useState<BigNumber>();
+  const [spoils, setSpoils] = useState<BigNumber>();
+  const [gameStartTimestamp, setGameStartTimestamp] = useState<BigNumber>();
+  const [numberOfActivePlayers, setNumberOfActivePlayers] =
+    useState<BigNumber>();
 
   useEffect(() => {
-    if (currentTurn && BigNumber.from(currentTurn).gt(0)) {
-      setHasGameStarted(true);
-    }
+    if (data) {
+      const currentTurn = data[0];
+      const spoils = data[1];
+      const gameStartTimestamp = data[2];
+      const activePlayersCount = data[3];
 
-    if (spoils && BigNumber.from(spoils).gt(0)) {
-      setHasJoinedGame(true);
+      console.log("currentTUrn: ", data[0]);
+      console.log("spoils: ", data[1]);
+      console.log("gameStartTimestamp: ", data[2]);
+      console.log("activePlyersCount: ", data[3]);
+      console.log("interval: ", data[4]);
+
+      if (currentTurn && BigNumber.from(currentTurn).gt(0)) {
+        setCurrentTurn(BigNumber.from(currentTurn));
+      }
+
+      if (activePlayersCount && BigNumber.from(activePlayersCount).gt(0)) {
+        setNumberOfActivePlayers(BigNumber.from(activePlayersCount));
+      }
+
+      if (spoils && BigNumber.from(spoils).gt(0)) {
+        setHasJoinedGame(true);
+        setSpoils(BigNumber.from(spoils));
+      }
+
+      if (gameStartTimestamp && BigNumber.from(gameStartTimestamp).gt(0)) {
+        setGameStartTimestamp(BigNumber.from(gameStartTimestamp));
+      }
     }
-  }, [currentTurn, spoils]);
+  }, [data]);
 
   return (
     <div>
@@ -48,25 +92,37 @@ const Index: NextPage = () => {
         <title>Domination</title>
         <meta
           name="description"
-          content="Simple, on-chain winner takes all board game."
+          content="Simple, on-chain, winner takes all board game."
         />
       </Head>
       <Header
-        currentTurn={currentTurn && BigNumber.from(currentTurn)}
-        spoils={spoils && BigNumber.from(spoils)}
+        currentTurn={currentTurn}
+        gameStartTimestamp={gameStartTimestamp}
+        numberOfActivePlayers={numberOfActivePlayers}
+        spoils={spoils}
       />
       <section className="container pt-12 h-screen w-screen mx-auto my-0 flex items-center justify-center">
         {hasJoinedGame ? (
-          hasGameStarted ? (
-            <Board />
+          currentTurn?.gt(0) ? (
+            <Board currentTurn={currentTurn} />
           ) : (
-            <div className="h-60 w-25 rounded-md bg-white p-20">
-              <p className="text-stone-500 text-center font-bold m-auto justify-center text-2xl">
+            <div className="h-60 w-25 rounded-md bg-white pt-14 p-20 flex-col justify-center align-center text-center">
+              <p className="text-stone-500 text-center font-bold m-auto text-2xl">
                 You&apos;re all set!
               </p>
-              <p className="text-stone-500 text-center m-auto justify-center text-md">
-                Come back in {timeTillStart} hours to make your first move.
+              <p className="text-stone-500 text-center m-auto text-md py-5">
+                Come back{" "}
+                {gameStartTimestamp && formatGameStartTime(gameStartTimestamp)}{" "}
+                to make your first move.
               </p>
+              <a
+                href="https://github.com/pmespresso/dom-strategy-game#readme"
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue-500"
+              >
+                Game Rules
+              </a>
             </div>
           )
         ) : (
