@@ -1,22 +1,22 @@
 import React from "react";
-import clsx from "clsx";
 import Link from "next/link";
 import { InjectedConnector } from "@wagmi/core";
-import { useAccount, useConnect, useContractRead } from "wagmi";
-
-import { BaseCharacterMumbaiAddress, GameMumbaiAddress } from "@/constants";
+import { useAccount, useConnect } from "wagmi";
 import { BigNumber } from "ethers";
 
-import DomStrategyGame from "../abis/DomStrategyGame.json";
 import { formatUnits } from "ethers/lib/utils";
+import { formatGameStartTime } from "@/utils";
 
 interface Props {
   currentTurn?: BigNumber;
+  gameStartTimestamp?: BigNumber;
+  numberOfActivePlayers?: BigNumber;
   spoils?: BigNumber;
 }
 
 export default function Header(props: Props) {
-  const { spoils, currentTurn } = props;
+  const { gameStartTimestamp, numberOfActivePlayers, spoils, currentTurn } =
+    props;
   const { address, isConnected } = useAccount();
   const { connect } = useConnect({
     connector: new InjectedConnector(),
@@ -27,15 +27,25 @@ export default function Header(props: Props) {
       <nav className="relative px-10  z-50 flex justify-between w-screen">
         <div className="flex">
           <Link href="#" aria-label="Home">
-            <p className="font-sans font-bold text-white text-2xl hover:cursor-pointer mr-4">
+            <p className="font-sans font-bold bg-gradient-to-r from-yellow-400  via-red-500  to-green-400 inline-block text-transparent bg-clip-text text-2xl hover:cursor-pointer mr-4">
               Domination
             </p>
           </Link>
-          <p className="text-stone-600 font-semibold mt-1 mr-4">
-            {currentTurn && currentTurn.eq(0)
-              ? "Game Starting Soon!"
-              : "Current Turn: " + currentTurn}
+          <p className="text-stone-600 font-semibold mt-1 mr-20 ml-16">
+            {gameStartTimestamp && currentTurn?.eq(0)
+              ? `Game Starting ${formatGameStartTime(gameStartTimestamp)}`
+              : "Game Started!"}
           </p>
+
+          <p className="text-stone-600 font-semibold mt-1 mr-20 ml-6">
+            {currentTurn?.gt(0) && `Current Turn: ${currentTurn}`}
+          </p>
+
+          {numberOfActivePlayers && (
+            <p className="text-stone-600 font-semibold mt-1 mr-4">
+              {numberOfActivePlayers.toString()} Players Connected
+            </p>
+          )}
         </div>
 
         {isConnected ? (
