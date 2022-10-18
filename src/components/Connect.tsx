@@ -22,7 +22,13 @@ import { PrimaryButton } from "./Button";
 import Loading from "./Loading";
 import Image from "next/image";
 
-const BaseCharacterTypes = ["bfg", "dragon", "knight", "robot", "wizard"];
+export const BaseCharacterTypes = [
+  "bfg",
+  "dragon",
+  "knight",
+  "robot",
+  "wizard",
+];
 
 function MintBaseCharacter({ to }: { to: string }) {
   const { address, isConnected } = useAccount();
