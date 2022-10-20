@@ -6,9 +6,11 @@ import {
   useAccount,
   useContractRead,
   useContractReads,
+  useContractWrite,
   usePrepareContractWrite,
   useSigner,
 } from "wagmi";
+import { PrimaryButton } from "./Button";
 
 interface AllianceStruct {
   admin: string;
@@ -34,7 +36,7 @@ export function Alliances() {
     })),
   });
 
-  const { config: joinAllianceConfig } = usePrepareContractWrite({
+  const { config } = usePrepareContractWrite({
     addressOrName: contracts.mumbai.gameAddress,
     contractInterface: contracts.mumbai.abis.game,
     functionName: "submit",
@@ -43,6 +45,8 @@ export function Alliances() {
       gasLimit: 500000,
     },
   });
+
+  const { write } = useContractWrite(config);
 
   const applyToJoinAlliance = useCallback(
     async (selectedAllianceId: BigNumber) => {
@@ -88,10 +92,17 @@ export function Alliances() {
   console.log("alliances => ", alliances);
 
   return (
-    <div className="grid gap-10 grid-cols-5 grid-rows-3">
-      {alliances?.map((alliance) => {
-        return <p key={alliance.id}>{alliance.name}</p>;
-      })}
+    <div className="h-96 w-full">
+      {alliances &&
+      alliances[0].admin != "0x0000000000000000000000000000000000000000" ? (
+        alliances.map((alliance) => {
+          return <p key={alliance.id}>{alliance.name}</p>;
+        })
+      ) : (
+        <p className="text-center">
+          There are no Alliances yet. Maybe try creating your own?
+        </p>
+      )}
     </div>
   );
 }

@@ -25,6 +25,22 @@ interface Props {
   children: React.ReactNode;
 }
 
+export interface PlayerStruct {
+  addr: string;
+  nftAddress: string;
+  tokenId: BigNumber;
+  balance: BigNumber;
+  lastMoveTimestamp: BigNumber;
+  allianceId: BigNumber;
+  hp: BigNumber;
+  attack: BigNumber;
+  x: BigNumber;
+  y: BigNumber;
+  pendingMoveCommitment: string;
+  pendingMove: string;
+  inJail: boolean;
+}
+
 export function GameStateContextProvider(props: Props) {
   const { children } = props;
   const { address } = useAccount();
@@ -46,6 +62,7 @@ export function GameStateContextProvider(props: Props) {
   const [nonce, setNonce] = useState<number>();
   const [nextAvailableAllianceId, setNextAvailableAllianceId] =
     useState<BigNumber>(BigNumber.from(0));
+  const [currentPlayer, setCurrentPlayer] = useState<PlayerStruct>();
 
   const { data, isLoading, isSuccess } = useContractReads({
     contracts: [
@@ -78,6 +95,10 @@ export function GameStateContextProvider(props: Props) {
         ...contractReadsMumbaiGame,
         functionName: "nextAvailableAllianceId",
       },
+      {
+        ...contractReadsMumbaiGame,
+        functionName: "players",
+      },
     ],
   });
 
@@ -91,6 +112,7 @@ export function GameStateContextProvider(props: Props) {
         interval,
         _gameStarted,
         nextAvailableAllianceId,
+        player,
       ] = data;
 
       if (currentTurn && BigNumber.from(currentTurn).gt(0)) {
@@ -119,6 +141,10 @@ export function GameStateContextProvider(props: Props) {
         BigNumber.from(nextAvailableAllianceId).gt(0)
       ) {
         setNextAvailableAllianceId(BigNumber.from(nextAvailableAllianceId));
+      }
+
+      if (player) {
+        setCurrentPlayer(player as unknown as PlayerStruct);
       }
 
       setGameStarted(_gameStarted as unknown as boolean);

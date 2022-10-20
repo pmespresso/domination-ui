@@ -10,7 +10,6 @@ import {
 } from "wagmi";
 
 import { contracts } from "../constants";
-import { AllianceOverviewBadge } from "./Alliances";
 import { PrimaryButton } from "./Button";
 import Cell from "./Cell";
 
