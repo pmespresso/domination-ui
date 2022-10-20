@@ -1,42 +1,6 @@
 {
   "abi": [
     {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "_vrfCoordinator",
-          "type": "address"
-        },
-        {
-          "internalType": "address",
-          "name": "_linkToken",
-          "type": "address"
-        },
-        {
-          "internalType": "uint64",
-          "name": "_subscriptionId",
-          "type": "uint64"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "_keyHash",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "uint256",
-          "name": "updateInterval",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "_gameStartTimestamp",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "payable",
-      "type": "constructor"
-    },
-    {
       "inputs": [],
       "name": "LoserTriedWithdraw",
       "type": "error"
@@ -273,6 +237,19 @@
       "inputs": [
         {
           "indexed": true,
+          "internalType": "uint256",
+          "name": "newStartTimeStamp",
+          "type": "uint256"
+        }
+      ],
+      "name": "GameStartDelayed",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
           "internalType": "address",
           "name": "who",
           "type": "address"
@@ -437,6 +414,44 @@
       "inputs": [
         {
           "indexed": true,
+          "internalType": "uint256",
+          "name": "turn",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "vrf_request_id",
+          "type": "uint256"
+        }
+      ],
+      "name": "RolledDice",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "address",
+          "name": "who",
+          "type": "address"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "turn",
+          "type": "uint256"
+        }
+      ],
+      "name": "SkipInmateTurn",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
           "internalType": "address",
           "name": "addr",
           "type": "address"
@@ -474,6 +489,31 @@
         }
       ],
       "name": "TurnStarted",
+      "type": "event"
+    },
+    {
+      "anonymous": false,
+      "inputs": [
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "currentTimestamp",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "uint256",
+          "name": "lastUpkeepTimestamp",
+          "type": "uint256"
+        },
+        {
+          "indexed": true,
+          "internalType": "bool",
+          "name": "upkeepNeeded",
+          "type": "bool"
+        }
+      ],
+      "name": "UpkeepCheck",
       "type": "event"
     },
     {
@@ -520,6 +560,353 @@
       ],
       "name": "WinnerWithdrawSpoils",
       "type": "event"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "name": "checkUpkeep",
+      "outputs": [
+        {
+          "internalType": "bool",
+          "name": "upkeepNeeded",
+          "type": "bool"
+        },
+        {
+          "internalType": "bytes",
+          "name": "performData",
+          "type": "bytes"
+        }
+      ],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "tokenId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "byoNft",
+          "type": "address"
+        }
+      ],
+      "name": "connect",
+      "outputs": [],
+      "stateMutability": "payable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "player",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "maxMembers",
+          "type": "uint256"
+        },
+        {
+          "internalType": "string",
+          "name": "name",
+          "type": "string"
+        }
+      ],
+      "name": "createAlliance",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "init",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "player",
+          "type": "address"
+        },
+        {
+          "internalType": "uint256",
+          "name": "allianceId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint8",
+          "name": "v",
+          "type": "uint8"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "r",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "s",
+          "type": "bytes32"
+        }
+      ],
+      "name": "joinAlliance",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "player",
+          "type": "address"
+        }
+      ],
+      "name": "leaveAlliance",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "player",
+          "type": "address"
+        },
+        {
+          "internalType": "int8",
+          "name": "direction",
+          "type": "int8"
+        }
+      ],
+      "name": "move",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "bytes",
+          "name": "",
+          "type": "bytes"
+        }
+      ],
+      "name": "performUpkeep",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "requestId",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256[]",
+          "name": "randomWords",
+          "type": "uint256[]"
+        }
+      ],
+      "name": "rawFulfillRandomWords",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "requestRandomWords",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "player",
+          "type": "address"
+        }
+      ],
+      "name": "rest",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "turn",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "nonce",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "bytes",
+          "name": "data",
+          "type": "bytes"
+        }
+      ],
+      "name": "reveal",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "playerAddress",
+          "type": "address"
+        }
+      ],
+      "name": "sendToJail",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "owner",
+          "type": "address"
+        }
+      ],
+      "name": "setOwner",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "x",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "y",
+          "type": "uint256"
+        },
+        {
+          "internalType": "address",
+          "name": "addr",
+          "type": "address"
+        }
+      ],
+      "name": "setPlayingField",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint64",
+          "name": "subId",
+          "type": "uint64"
+        }
+      ],
+      "name": "setSubscriptionId",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "start",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "uint256",
+          "name": "turn",
+          "type": "uint256"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "commitment",
+          "type": "bytes32"
+        }
+      ],
+      "name": "submit",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "withdrawWinnerAlliance",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [],
+      "name": "withdrawWinnerPlayer",
+      "outputs": [],
+      "stateMutability": "nonpayable",
+      "type": "function"
+    },
+    {
+      "inputs": [
+        {
+          "internalType": "address",
+          "name": "_vrfCoordinator",
+          "type": "address"
+        },
+        {
+          "internalType": "address",
+          "name": "_linkToken",
+          "type": "address"
+        },
+        {
+          "internalType": "uint64",
+          "name": "_subscriptionId",
+          "type": "uint64"
+        },
+        {
+          "internalType": "bytes32",
+          "name": "_keyHash",
+          "type": "bytes32"
+        },
+        {
+          "internalType": "uint256",
+          "name": "updateInterval",
+          "type": "uint256"
+        },
+        {
+          "internalType": "uint256",
+          "name": "_gameStartTimestamp",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "payable",
+      "type": "constructor"
     },
     {
       "inputs": [],
@@ -635,71 +1022,6 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "name": "checkUpkeep",
-      "outputs": [
-        {
-          "internalType": "bool",
-          "name": "upkeepNeeded",
-          "type": "bool"
-        },
-        {
-          "internalType": "bytes",
-          "name": "performData",
-          "type": "bytes"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "tokenId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "byoNft",
-          "type": "address"
-        }
-      ],
-      "name": "connect",
-      "outputs": [],
-      "stateMutability": "payable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "player",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "maxMembers",
-          "type": "uint256"
-        },
-        {
-          "internalType": "string",
-          "name": "name",
-          "type": "string"
-        }
-      ],
-      "name": "createAlliance",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "inputs": [],
       "name": "currentTurn",
       "outputs": [
@@ -740,19 +1062,6 @@
     },
     {
       "inputs": [],
-      "name": "gameStartTimestamp",
-      "outputs": [
-        {
-          "internalType": "uint256",
-          "name": "",
-          "type": "uint256"
-        }
-      ],
-      "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
       "name": "gameStarted",
       "outputs": [
         {
@@ -766,9 +1075,15 @@
     },
     {
       "inputs": [],
-      "name": "init",
-      "outputs": [],
-      "stateMutability": "nonpayable",
+      "name": "gameStartTimestamp",
+      "outputs": [
+        {
+          "internalType": "uint256",
+          "name": "",
+          "type": "uint256"
+        }
+      ],
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -822,41 +1137,8 @@
       "type": "function"
     },
     {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "player",
-          "type": "address"
-        },
-        {
-          "internalType": "uint256",
-          "name": "allianceId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint8",
-          "name": "v",
-          "type": "uint8"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "r",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "s",
-          "type": "bytes32"
-        }
-      ],
-      "name": "joinAlliance",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
       "inputs": [],
-      "name": "lastTimestamp",
+      "name": "lastUpkeepTimestamp",
       "outputs": [
         {
           "internalType": "uint256",
@@ -865,19 +1147,6 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "player",
-          "type": "address"
-        }
-      ],
-      "name": "leaveAlliance",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -891,24 +1160,6 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "player",
-          "type": "address"
-        },
-        {
-          "internalType": "int8",
-          "name": "direction",
-          "type": "int8"
-        }
-      ],
-      "name": "move",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -969,19 +1220,6 @@
         }
       ],
       "stateMutability": "pure",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "bytes",
-          "name": "",
-          "type": "bytes"
-        }
-      ],
-      "name": "performUpkeep",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -1103,155 +1341,6 @@
     {
       "inputs": [
         {
-          "internalType": "uint256",
-          "name": "requestId",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256[]",
-          "name": "randomWords",
-          "type": "uint256[]"
-        }
-      ],
-      "name": "rawFulfillRandomWords",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "requestRandomWords",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "turn",
-          "type": "uint256"
-        }
-      ],
-      "name": "resolve",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "player",
-          "type": "address"
-        }
-      ],
-      "name": "rest",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "turn",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "nonce",
-          "type": "bytes32"
-        },
-        {
-          "internalType": "bytes",
-          "name": "data",
-          "type": "bytes"
-        }
-      ],
-      "name": "reveal",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "turn",
-          "type": "uint256"
-        }
-      ],
-      "name": "rollDice",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "playerAddress",
-          "type": "address"
-        }
-      ],
-      "name": "sendToJail",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "address",
-          "name": "owner",
-          "type": "address"
-        }
-      ],
-      "name": "setOwner",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "x",
-          "type": "uint256"
-        },
-        {
-          "internalType": "uint256",
-          "name": "y",
-          "type": "uint256"
-        },
-        {
-          "internalType": "address",
-          "name": "addr",
-          "type": "address"
-        }
-      ],
-      "name": "setPlayingField",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint64",
-          "name": "subId",
-          "type": "uint64"
-        }
-      ],
-      "name": "setSubscriptionId",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
           "internalType": "address",
           "name": "",
           "type": "address"
@@ -1266,31 +1355,6 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "start",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [
-        {
-          "internalType": "uint256",
-          "name": "turn",
-          "type": "uint256"
-        },
-        {
-          "internalType": "bytes32",
-          "name": "commitment",
-          "type": "bytes32"
-        }
-      ],
-      "name": "submit",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     },
     {
@@ -1369,20 +1433,6 @@
         }
       ],
       "stateMutability": "view",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "withdrawWinnerAlliance",
-      "outputs": [],
-      "stateMutability": "nonpayable",
-      "type": "function"
-    },
-    {
-      "inputs": [],
-      "name": "withdrawWinnerPlayer",
-      "outputs": [],
-      "stateMutability": "nonpayable",
       "type": "function"
     }
   ]

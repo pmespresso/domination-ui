@@ -5,15 +5,8 @@ import Image from "next/image";
 import { contracts } from "@/constants";
 import { BaseCharacterTypes } from "./Connect";
 
-export default function Cell({
-  moveDirection,
-  isRestingSquare,
-  playerAddr,
-  playerTokenId,
-  IDomGame,
-  nonce,
-  handleCommitment,
-}: {
+interface Props {
+  currentTurn: BigNumber;
   moveDirection: number | null;
   isRestingSquare?: boolean;
   playerAddr: string;
@@ -21,7 +14,18 @@ export default function Cell({
   IDomGame: Interface;
   nonce: number;
   handleCommitment: (data: string, moveDirection: number | null) => void;
-}) {
+}
+
+export default function Cell({
+  currentTurn,
+  moveDirection,
+  isRestingSquare,
+  playerAddr,
+  playerTokenId,
+  IDomGame,
+  nonce,
+  handleCommitment,
+}: Props) {
   const [isHovered, setIsHovered] = useState(false);
 
   const handleClick = useCallback(() => {
@@ -32,18 +36,33 @@ export default function Cell({
 
         const data = utils.keccak256(
           utils.solidityPack(
-            ["bytes32", "bytes"],
-            [utils.hexZeroPad(utils.hexlify(nonce), 32), call]
+            ["uint256", "bytes32", "bytes"],
+            [
+              currentTurn.toNumber(),
+              utils.hexZeroPad(utils.hexlify(nonce), 32),
+              call,
+            ]
           )
         );
 
         handleCommitment(data, moveDirection);
       } else {
         // move
-        const data = IDomGame.encodeFunctionData("move", [
+        const call = IDomGame.encodeFunctionData("move", [
           playerAddr,
           moveDirection,
         ]);
+
+        const data = utils.keccak256(
+          utils.solidityPack(
+            ["uint256", "bytes32", "bytes"],
+            [
+              currentTurn.toNumber(),
+              utils.hexZeroPad(utils.hexlify(nonce), 32),
+              call,
+            ]
+          )
+        );
 
         handleCommitment(data, moveDirection);
       }
@@ -55,6 +74,7 @@ export default function Cell({
     moveDirection,
     nonce,
     handleCommitment,
+    currentTurn,
   ]);
 
   const handleMouseEnter = useCallback(() => {

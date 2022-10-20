@@ -6,17 +6,24 @@ import { BigNumber } from "ethers";
 
 import { formatUnits } from "ethers/lib/utils";
 import { formatGameStartTime } from "@/utils";
+import moment from "moment";
 
 interface Props {
-  currentTurn?: BigNumber;
-  gameStartTimestamp?: BigNumber;
-  numberOfActivePlayers?: BigNumber;
-  spoils?: BigNumber;
+  currentTurn: BigNumber;
+  gameStarted: boolean;
+  gameStartTimestamp: BigNumber;
+  numberOfActivePlayers: BigNumber;
+  spoils: BigNumber;
 }
 
 export default function Header(props: Props) {
-  const { gameStartTimestamp, numberOfActivePlayers, spoils, currentTurn } =
-    props;
+  const {
+    gameStartTimestamp,
+    gameStarted,
+    numberOfActivePlayers,
+    spoils,
+    currentTurn,
+  } = props;
   const { address, isConnected } = useAccount();
   const { connect } = useConnect({
     connector: new InjectedConnector(),
@@ -32,9 +39,9 @@ export default function Header(props: Props) {
             </p>
           </Link>
           <p className="text-stone-600 font-semibold mt-1 mr-20 ml-16">
-            {gameStartTimestamp && currentTurn?.eq(0)
-              ? `Game Starting ${formatGameStartTime(gameStartTimestamp)}`
-              : "Game Started!"}
+            {gameStarted
+              ? "Game Started!"
+              : `Game Starting ${formatGameStartTime(gameStartTimestamp)}`}
           </p>
 
           <p className="text-stone-600 font-semibold mt-1 mr-20 ml-6">

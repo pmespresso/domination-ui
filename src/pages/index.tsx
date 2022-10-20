@@ -21,7 +21,7 @@ const Index: NextPage = () => {
     watch: true,
   };
 
-  const { data } = useContractReads({
+  const { data, isLoading, isSuccess } = useContractReads({
     contracts: [
       {
         ...mumbaiGame,
@@ -44,28 +44,34 @@ const Index: NextPage = () => {
         ...mumbaiGame,
         functionName: "interval",
       },
+      {
+        ...mumbaiGame,
+        functionName: "gameStarted",
+      },
     ],
   });
 
   const [hasJoinedGame, setHasJoinedGame] = useState(false);
-  const [currentTurn, setCurrentTurn] = useState<BigNumber>();
-  const [spoils, setSpoils] = useState<BigNumber>();
-  const [gameStartTimestamp, setGameStartTimestamp] = useState<BigNumber>();
-  const [numberOfActivePlayers, setNumberOfActivePlayers] =
-    useState<BigNumber>();
+  const [currentTurn, setCurrentTurn] = useState<BigNumber>(BigNumber.from(0));
+  const [spoils, setSpoils] = useState<BigNumber>(BigNumber.from(0));
+  const [gameStartTimestamp, setGameStartTimestamp] = useState<BigNumber>(
+    BigNumber.from(0)
+  );
+  const [numberOfActivePlayers, setNumberOfActivePlayers] = useState<BigNumber>(
+    BigNumber.from(0)
+  );
+  const [gameStarted, setGameStarted] = useState(false);
 
   useEffect(() => {
     if (data) {
-      const currentTurn = data[0];
-      const spoils = data[1];
-      const gameStartTimestamp = data[2];
-      const activePlayersCount = data[3];
-
-      console.log("currentTUrn: ", data[0]);
-      console.log("spoils: ", data[1]);
-      console.log("gameStartTimestamp: ", data[2]);
-      console.log("activePlyersCount: ", data[3]);
-      console.log("interval: ", data[4]);
+      const [
+        currentTurn,
+        spoils,
+        gameStartTimestamp,
+        activePlayersCount,
+        interval,
+        _gameStarted,
+      ] = data;
 
       if (currentTurn && BigNumber.from(currentTurn).gt(0)) {
         setCurrentTurn(BigNumber.from(currentTurn));
@@ -83,6 +89,10 @@ const Index: NextPage = () => {
       if (gameStartTimestamp && BigNumber.from(gameStartTimestamp).gt(0)) {
         setGameStartTimestamp(BigNumber.from(gameStartTimestamp));
       }
+      console.log("gameStarted", _gameStarted);
+      console.log("Current turn", currentTurn);
+      console.log("Game start timestamp", gameStartTimestamp);
+      setGameStarted(_gameStarted as unknown as boolean);
     }
   }, [data]);
 
@@ -95,12 +105,16 @@ const Index: NextPage = () => {
           content="Simple, on-chain, winner takes all board game."
         />
       </Head>
-      <Header
-        currentTurn={currentTurn}
-        gameStartTimestamp={gameStartTimestamp}
-        numberOfActivePlayers={numberOfActivePlayers}
-        spoils={spoils}
-      />
+      {isSuccess && (
+        <Header
+          currentTurn={currentTurn}
+          gameStarted={gameStarted}
+          gameStartTimestamp={gameStartTimestamp}
+          numberOfActivePlayers={numberOfActivePlayers}
+          spoils={spoils}
+        />
+      )}
+
       <section className="container pt-12 h-screen w-screen mx-auto my-0 flex items-center justify-center">
         {hasJoinedGame ? (
           currentTurn?.gt(0) ? (

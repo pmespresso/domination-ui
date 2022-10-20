@@ -60,6 +60,12 @@ interface Props {
   currentTurn: BigNumber;
 }
 
+enum GameStage {
+  Submit,
+  Reveal,
+  Resolve,
+}
+
 export default function Board(props: Props) {
   // TODO: get this from Context
   const { currentTurn } = props;
@@ -72,6 +78,9 @@ export default function Board(props: Props) {
     args: [playerAddress],
   });
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  const [hasRevealed, setHasRevealed] = useState(false);
+  const [gameStage, setGameStage] = useState<GameStage>(GameStage.Submit);
   const { data: signer } = useSigner();
 
   const [commitment, setCommitment] = useState<string>();
@@ -79,17 +88,17 @@ export default function Board(props: Props) {
   const [nonce, setNonce] = useState<number>();
   const [selectedMoveDirection, setSelectedMoveDirection] = useState<string>();
 
-  const { config } = usePrepareContractWrite({
+  const { config: submitConfig } = usePrepareContractWrite({
     addressOrName: contracts.mumbai.gameAddress,
     contractInterface: contracts.mumbai.abis.game,
     functionName: "submit",
-    args: [currentTurn.add(1).toNumber(), commitment],
+    args: [currentTurn.toNumber(), commitment],
     overrides: {
       gasLimit: 1000000,
     },
   });
 
-  const { write } = useContractWrite(config);
+  const { write: submitMove } = useContractWrite(submitConfig);
 
   useEffect(() => {
     setInterface(new utils.Interface(contracts.mumbai.abis.game));
@@ -105,6 +114,20 @@ export default function Board(props: Props) {
 
     getNonce();
   }, [signer]);
+
+  useEffect(() => {
+    if (player?.pendingMoveCommitment) {
+      setHasSubmitted(true);
+    } else {
+      setHasSubmitted(false);
+    }
+
+    if (player?.pendingMove) {
+      setHasRevealed(true);
+    } else {
+      setHasRevealed(false);
+    }
+  }, [player]);
 
   const handleCommitment = useCallback(
     (data: string, moveDirection: number | null) => {
@@ -142,30 +165,31 @@ export default function Board(props: Props) {
         <ConfirmationDialog
           isOpen={showConfirmation}
           handleClose={() => setShowConfirmation(false)}
-          submit={write}
+          submit={submitMove}
           selectedMoveDirection={selectedMoveDirection}
         />
+      ) : player && nonce && IDomGame && gameStage === GameStage.Submit ? (
+        <div className="grid gap-10 grid-cols-3 grid-rows-3">
+          {moveDirections.map((dir, i) => {
+            return (
+              <Cell
+                key={i}
+                currentTurn={currentTurn}
+                moveDirection={dir}
+                isRestingSquare={dir == 0}
+                nonce={nonce}
+                handleCommitment={handleCommitment}
+                playerAddr={player.addr}
+                playerTokenId={player.tokenId}
+                IDomGame={IDomGame}
+              />
+            );
+          })}
+        </div>
+      ) : gameStage === GameStage.Reveal ? (
+        <div>Reveal</div>
       ) : (
-        player &&
-        nonce &&
-        IDomGame && (
-          <div className="grid gap-10 grid-cols-3 grid-rows-3">
-            {moveDirections.map((dir, i) => {
-              return (
-                <Cell
-                  key={i}
-                  moveDirection={dir}
-                  isRestingSquare={dir == 0}
-                  nonce={nonce}
-                  handleCommitment={handleCommitment}
-                  playerAddr={player.addr}
-                  playerTokenId={player.tokenId}
-                  IDomGame={IDomGame}
-                />
-              );
-            })}
-          </div>
-        )
+        <div>Resolving</div>
       )}
     </div>
   );
