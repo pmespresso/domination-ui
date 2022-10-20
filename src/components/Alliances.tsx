@@ -96,7 +96,20 @@ export function Alliances() {
       {alliances &&
       alliances[0].admin != "0x0000000000000000000000000000000000000000" ? (
         alliances.map((alliance) => {
-          return <p key={alliance.id}>{alliance.name}</p>;
+          return (
+            <div
+              key={alliance.id}
+              className="flex-col justify-start align-center"
+            >
+              <p className="font-semibold">{alliance.name}</p>
+              <button
+                className="w-60"
+                onClick={() => applyToJoinAlliance(alliance.id)}
+              >
+                Apply
+              </button>
+            </div>
+          );
         })
       ) : (
         <p className="text-center">
