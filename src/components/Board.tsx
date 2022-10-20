@@ -1,17 +1,16 @@
 import { GameStateContext } from "@/GameStateContext";
 import { Dialog } from "@headlessui/react";
-import { BigNumber, utils } from "ethers";
-import { Interface } from "ethers/lib/utils";
+import { BigNumber } from "ethers";
 import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
   useAccount,
   useContractRead,
   useContractWrite,
   usePrepareContractWrite,
-  useSigner,
 } from "wagmi";
 
 import { contracts } from "../constants";
+import { AllianceOverviewBadge } from "./Alliances";
 import { PrimaryButton } from "./Button";
 import Cell from "./Cell";
 

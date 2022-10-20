@@ -95,14 +95,3 @@ export function Alliances() {
     </div>
   );
 }
-
-export function AllianceOverviewBadge() {
-  const { nextAvailableAllianceId } = useContext(GameStateContext);
-
-  return (
-    <div>
-      Active Alliances: {nextAvailableAllianceId.toNumber()}
-      <button className="h-14 w-32 rounded-full">View Alliances</button>
-    </div>
-  );
-}
