@@ -1,100 +1,86 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import dynamic from "next/dynamic";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
+import { Tab } from "@headlessui/react";
 
 // https://jonmeyers.io/blog/fix-client-server-hydration-error-in-next-js
 const Header = dynamic(() => import("@/components/Header"), { ssr: false });
 import Board from "@/components/Board";
-import { contracts } from "@/constants";
 const Connect = dynamic(() => import("@/components/Connect"), { ssr: false });
-import { BigNumber } from "ethers";
-import { useAccount, useContractReads } from "wagmi";
 import { formatGameStartTime } from "@/utils";
+import { GameStateContext } from "@/GameStateContext";
+import { Alliances } from "@/components/Alliances";
+import { PrimaryButton } from "@/components/Button";
+import { utils } from "ethers";
+import {
+  useAccount,
+  useContractWrite,
+  usePrepareContractWrite,
+  useSigner,
+} from "wagmi";
+import { contracts } from "@/constants";
 
 const Index: NextPage = () => {
-  const { address } = useAccount();
+  const {
+    currentTurn,
+    gameStarted,
+    gameStartTimestamp,
+    numberOfActivePlayers,
+    hasJoinedGame,
+    IDomGame,
+    nonce,
+    spoils,
+  } = useContext(GameStateContext);
+  const { address: playerAddr } = useAccount();
+  const { data: signer } = useSigner();
+  const [allianceName, setAllianceName] = useState("");
+  const [maxMembers, setMaxMembers] = useState(0);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+  const [commitment, setCommitment] = useState<string>();
 
-  const mumbaiGame = {
+  const { config: submitConfig } = usePrepareContractWrite({
     addressOrName: contracts.mumbai.gameAddress,
     contractInterface: contracts.mumbai.abis.game,
-    watch: true,
-  };
-
-  const { data, isLoading, isSuccess } = useContractReads({
-    contracts: [
-      {
-        ...mumbaiGame,
-        functionName: "currentTurn",
-      },
-      {
-        ...mumbaiGame,
-        functionName: "spoils",
-        args: [address],
-      },
-      {
-        ...mumbaiGame,
-        functionName: "gameStartTimestamp",
-      },
-      {
-        ...mumbaiGame,
-        functionName: "activePlayersCount",
-      },
-      {
-        ...mumbaiGame,
-        functionName: "interval",
-      },
-      {
-        ...mumbaiGame,
-        functionName: "gameStarted",
-      },
-    ],
+    functionName: "submit",
+    args: [currentTurn.toNumber(), commitment],
+    overrides: {
+      gasLimit: 1000000,
+    },
   });
 
-  const [hasJoinedGame, setHasJoinedGame] = useState(false);
-  const [currentTurn, setCurrentTurn] = useState<BigNumber>(BigNumber.from(0));
-  const [spoils, setSpoils] = useState<BigNumber>(BigNumber.from(0));
-  const [gameStartTimestamp, setGameStartTimestamp] = useState<BigNumber>(
-    BigNumber.from(0)
-  );
-  const [numberOfActivePlayers, setNumberOfActivePlayers] = useState<BigNumber>(
-    BigNumber.from(0)
-  );
-  const [gameStarted, setGameStarted] = useState(false);
+  const { write } = useContractWrite(submitConfig);
 
-  useEffect(() => {
-    if (data) {
-      const [
-        currentTurn,
-        spoils,
-        gameStartTimestamp,
-        activePlayersCount,
-        interval,
-        _gameStarted,
-      ] = data;
+  const handleCreateAlliance = useCallback(async () => {
+    if (IDomGame && nonce && signer) {
+      const call = IDomGame.encodeFunctionData("createAlliance", [
+        playerAddr,
+        maxMembers,
+        allianceName,
+      ]);
 
-      if (currentTurn && BigNumber.from(currentTurn).gt(0)) {
-        setCurrentTurn(BigNumber.from(currentTurn));
-      }
+      const encodedCall = utils.keccak256(
+        utils.solidityPack(
+          ["uint256", "bytes32", "bytes"],
+          [
+            currentTurn.toNumber(),
+            utils.hexZeroPad(utils.hexlify(nonce), 32),
+            call,
+          ]
+        )
+      );
 
-      if (activePlayersCount && BigNumber.from(activePlayersCount).gt(0)) {
-        setNumberOfActivePlayers(BigNumber.from(activePlayersCount));
-      }
-
-      if (spoils && BigNumber.from(spoils).gt(0)) {
-        setHasJoinedGame(true);
-        setSpoils(BigNumber.from(spoils));
-      }
-
-      if (gameStartTimestamp && BigNumber.from(gameStartTimestamp).gt(0)) {
-        setGameStartTimestamp(BigNumber.from(gameStartTimestamp));
-      }
-      console.log("gameStarted", _gameStarted);
-      console.log("Current turn", currentTurn);
-      console.log("Game start timestamp", gameStartTimestamp);
-      setGameStarted(_gameStarted as unknown as boolean);
+      setCommitment(encodedCall);
     }
-  }, [data]);
+  }, [
+    IDomGame,
+    nonce,
+    signer,
+    playerAddr,
+    currentTurn,
+    allianceName,
+    maxMembers,
+  ]);
 
   return (
     <div>
@@ -105,20 +91,115 @@ const Index: NextPage = () => {
           content="Simple, on-chain, winner takes all board game."
         />
       </Head>
-      {isSuccess && (
-        <Header
-          currentTurn={currentTurn}
-          gameStarted={gameStarted}
-          gameStartTimestamp={gameStartTimestamp}
-          numberOfActivePlayers={numberOfActivePlayers}
-          spoils={spoils}
-        />
-      )}
+      <Header
+        currentTurn={currentTurn}
+        gameStarted={gameStarted}
+        gameStartTimestamp={gameStartTimestamp}
+        numberOfActivePlayers={numberOfActivePlayers}
+        spoils={spoils}
+      />
 
-      <section className="container pt-12 h-screen w-screen mx-auto my-0 flex items-center justify-center">
+      <section className="container pt-12 w-3/4 mx-auto my-24 flex-col items-center justify-center">
         {hasJoinedGame ? (
           currentTurn?.gt(0) ? (
-            <Board currentTurn={currentTurn} />
+            <Tab.Group
+              selectedIndex={selectedIndex}
+              onChange={setSelectedIndex}
+            >
+              <Tab.List className="flex bg-white rounded-md text-stone-800 mb-6 border-slate-800 px-6">
+                <Tab as={React.Fragment}>
+                  {({ selected }) => (
+                    <p
+                      className={`${
+                        selected && "text-blue-500 font-semibold"
+                      } + px-4 py-8 hover:cursor-pointer`}
+                    >
+                      Game Board
+                    </p>
+                  )}
+                </Tab>
+                <Tab as={React.Fragment}>
+                  {({ selected }) => (
+                    <p
+                      className={`${
+                        selected && "text-blue-500 font-semibold"
+                      } + px-4 py-8 hover:cursor-pointer`}
+                    >
+                      Alliance Overview
+                    </p>
+                  )}
+                </Tab>
+                <Tab as={React.Fragment}>
+                  {({ selected }) => (
+                    <div className="ml-auto my-auto w-40">
+                      <p
+                        className={`${
+                          selected && "text-blue-500 font-semibold"
+                        } + px-4 py-8 hover:cursor-pointer`}
+                      >
+                        Create Alliance
+                      </p>
+                    </div>
+                  )}
+                </Tab>
+              </Tab.List>
+              <Tab.Panels className="bg-white rounded-md text-stone-800">
+                <Tab.Panel>
+                  <Board currentTurn={currentTurn} />
+                </Tab.Panel>
+                <Tab.Panel>
+                  <Alliances />
+                </Tab.Panel>
+                <Tab.Panel>
+                  <div className="flex flex-col items-center justify-center py-32">
+                    <p className="text-2xl font-sans pt-4">
+                      Create New Alliance
+                    </p>
+                    {commitment ? (
+                      <div className="flex flex-col items-center justify-center py-6">
+                        <p className="text-lg font-semibold">
+                          This will count as your move for this turn.
+                        </p>
+                        <p className="text-center">Commitment: {commitment}</p>
+                        <button
+                          className="text-lg mt-6 py-2 px-4 border border-slate-400 rounded-md"
+                          onClick={() => write?.()}
+                        >
+                          Continue?
+                        </button>
+                      </div>
+                    ) : (
+                      <div>
+                        <input
+                          className="w-96 my-4 p-8 border border-slate-800 rounded-md"
+                          type="text"
+                          onChange={({ target: { value } }) =>
+                            setAllianceName(value)
+                          }
+                          value={allianceName}
+                          placeholder="Alliance Name"
+                        />
+                        <input
+                          className="w-96 my-4 p-8 border border-slate-800 rounded-md"
+                          type="number"
+                          onChange={({ target: { value } }) =>
+                            setMaxMembers(Number(value))
+                          }
+                          value={maxMembers}
+                          placeholder="Max Members"
+                        />
+                        <div className="w-40">
+                          <PrimaryButton
+                            label="Create Alliance"
+                            onClick={handleCreateAlliance}
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </Tab.Panel>
+              </Tab.Panels>
+            </Tab.Group>
           ) : (
             <div className="h-60 w-25 rounded-md bg-white pt-14 p-20 flex-col justify-center align-center text-center">
               <p className="text-stone-500 text-center font-bold m-auto text-2xl">

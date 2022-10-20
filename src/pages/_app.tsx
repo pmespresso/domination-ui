@@ -2,6 +2,7 @@ import "../styles/tailwind.css";
 import type { AppProps } from "next/app";
 import { configureChains, chain, createClient, WagmiConfig } from "wagmi";
 import { publicProvider } from "wagmi/providers/public";
+import { GameStateContextProvider } from "@/GameStateContext";
 
 function MyApp({ Component, pageProps }: AppProps) {
   const { chains, provider, webSocketProvider } = configureChains(
@@ -17,7 +18,9 @@ function MyApp({ Component, pageProps }: AppProps) {
 
   return (
     <WagmiConfig client={client}>
-      <Component {...pageProps} />
+      <GameStateContextProvider>
+        <Component {...pageProps} />
+      </GameStateContextProvider>
     </WagmiConfig>
   );
 }
