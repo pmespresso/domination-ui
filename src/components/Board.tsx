@@ -1,7 +1,8 @@
+import { GameStateContext } from "@/GameStateContext";
 import { Dialog } from "@headlessui/react";
 import { BigNumber, utils } from "ethers";
 import { Interface } from "ethers/lib/utils";
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
   useAccount,
   useContractRead,
@@ -70,6 +71,7 @@ export default function Board(props: Props) {
   // TODO: get this from Context
   const { currentTurn } = props;
   const { address: playerAddress } = useAccount();
+  const { IDomGame, nonce } = useContext(GameStateContext);
   const { data: player } = useContractRead({
     addressOrName: contracts.mumbai.gameAddress,
     contractInterface: contracts.mumbai.abis.game,
@@ -81,11 +83,9 @@ export default function Board(props: Props) {
   const [hasSubmitted, setHasSubmitted] = useState(false);
   const [hasRevealed, setHasRevealed] = useState(false);
   const [gameStage, setGameStage] = useState<GameStage>(GameStage.Submit);
-  const { data: signer } = useSigner();
 
   const [commitment, setCommitment] = useState<string>();
-  const [IDomGame, setInterface] = useState<Interface>();
-  const [nonce, setNonce] = useState<number>();
+
   const [selectedMoveDirection, setSelectedMoveDirection] = useState<string>();
 
   const { config: submitConfig } = usePrepareContractWrite({
@@ -99,21 +99,6 @@ export default function Board(props: Props) {
   });
 
   const { write: submitMove } = useContractWrite(submitConfig);
-
-  useEffect(() => {
-    setInterface(new utils.Interface(contracts.mumbai.abis.game));
-  }, []);
-
-  useEffect(() => {
-    async function getNonce() {
-      if (signer) {
-        const _nonce = await signer.getTransactionCount();
-        setNonce(_nonce);
-      }
-    }
-
-    getNonce();
-  }, [signer]);
 
   useEffect(() => {
     if (player?.pendingMoveCommitment) {

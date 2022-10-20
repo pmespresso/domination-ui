@@ -10,3 +10,9 @@ export const contracts = {
     },
   },
 };
+
+export const contractReadsMumbaiGame = {
+  addressOrName: contracts.mumbai.gameAddress,
+  contractInterface: contracts.mumbai.abis.game,
+  watch: true,
+};
